@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","title":"XAUUSD EA Settings","type":"object","additionalProperties":false,
+  "properties":{
+    "executionMode":{"key":"ExecutionMode","type":"string","enum":["DEMO","FORWARD","LIVE"],"default":"DEMO","group":"execution","label_i18n":"settings.executionMode","help_i18n":"settings.executionModeHelp","risk_level":"HIGH","apply":"COLD","risk_direction":"NONE","mt5_only":false},
+    "riskPerTrade":{"key":"RiskPerTrade","type":"number","minimum":0.1,"maximum":2,"multipleOf":0.1,"default":0.5,"group":"risk","label_i18n":"settings.riskPerTrade","help_i18n":"settings.riskPerTradeHelp","risk_level":"HIGH","apply":"COLD","risk_direction":"HIGHER_IS_LOOSER","mt5_only":false},
+    "dailyLossLimit":{"key":"DailyLossLimit","type":"number","minimum":0.5,"maximum":5,"multipleOf":0.1,"default":2,"group":"daily","label_i18n":"settings.dailyLossLimit","help_i18n":"settings.dailyLossLimitHelp","risk_level":"HIGH","apply":"COLD","risk_direction":"HIGHER_IS_LOOSER","mt5_only":false},
+    "maxSpread":{"key":"MaxSpread","type":"number","minimum":5,"maximum":100,"multipleOf":1,"default":35,"group":"filters","label_i18n":"settings.maxSpread","help_i18n":"settings.maxSpreadHelp","risk_level":"MEDIUM","apply":"HOT","risk_direction":"HIGHER_IS_LOOSER","mt5_only":false},
+    "allowRemoteConfig":{"key":"InpAllowRemoteConfig","type":"boolean","default":false,"group":"bridge","label_i18n":"settings.allowRemote","help_i18n":"settings.mt5Only","risk_level":"HIGH","apply":"COLD","risk_direction":"NONE","mt5_only":true},
+    "allowRealAccount":{"key":"InpAllowRealAccount","type":"boolean","default":false,"group":"execution","label_i18n":"settings.allowReal","help_i18n":"settings.mt5Only","risk_level":"HIGH","apply":"COLD","risk_direction":"NONE","mt5_only":true}
+  },
+  "required":["executionMode","riskPerTrade","dailyLossLimit","maxSpread","allowRemoteConfig","allowRealAccount"]
+}

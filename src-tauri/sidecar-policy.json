@@ -1,0 +1,1 @@
+{"ASSUMPTION":"The Python backend is packaged as xauusd-bridge-<target-triple>.exe. Rust owns spawn, bounded restart, health check and graceful shutdown; the placeholder binary and production updater key are intentionally not fabricated."}

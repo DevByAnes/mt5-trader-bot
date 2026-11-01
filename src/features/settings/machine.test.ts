@@ -1,0 +1,2 @@
+import { describe,expect,it } from 'vitest'; import { direction,settingsReducer } from './machine';
+describe('settings state machine',()=>{it('never reports applied before ack',()=>{expect(settingsReducer('REVIEWING_DIFF',{type:'SUBMIT'})).toBe('AWAITING_ACK');expect(settingsReducer('AWAITING_ACK',{type:'TIMEOUT'})).toBe('TIMEOUT')});it('uses risk direction',()=>{expect(direction(1,2,'HIGHER_IS_LOOSER')).toBe('LOOSER');expect(direction(1,2,'LOWER_IS_LOOSER')).toBe('TIGHTER');expect(direction(2,1,'LOWER_IS_LOOSER')).toBe('LOOSER')})});

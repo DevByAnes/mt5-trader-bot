@@ -1,0 +1,85 @@
+openapi: 3.1.0
+info: { title: XAUUSD Local Bridge API, version: 1.0.0 }
+servers: [{ url: http://127.0.0.1:8765/api/v1 }]
+paths:
+  /status:
+    get: { operationId: getStatus, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/StatusEnvelope' } } } } } }
+  /ea/state:
+    get: { operationId: getEaState, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EaStateEnvelope' } } } } } }
+  /positions:
+    get: { operationId: listPositions, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PositionsEnvelope' } } } } } }
+  /signals:
+    get:
+      operationId: listSignals
+      parameters: [{ name: cursor, in: query, schema: { type: string } }, { name: decision, in: query, schema: { type: string } }]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SignalsEnvelope' } } } } }
+  /chart:
+    get: { operationId: getChart, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ChartEnvelope' } } } } } }
+  /risk/daily:
+    get: { operationId: getDailyRisk, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/RiskEnvelope' } } } } } }
+  /settings:
+    get: { operationId: getSettings, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SettingsEnvelope' } } } } } }
+  /settings/validate:
+    post:
+      operationId: validateSettings
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/SettingsDraft' } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DiffEnvelope' } } } } }
+  /settings/apply:
+    post:
+      operationId: applySettings
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ApplyRequest' } } } }
+      responses: { '202': { description: Accepted, content: { application/json: { schema: { $ref: '#/components/schemas/AckEnvelope' } } } } }
+  /commands/{command}:
+    post:
+      operationId: sendCommand
+      parameters: [{ name: command, in: path, required: true, schema: { type: string, enum: [kill-switch,risk-free-all,risk-free-position,close-position] } }, { $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { position_id: { type: string } } } } } }
+      responses: { '202': { description: Accepted, content: { application/json: { schema: { $ref: '#/components/schemas/AckEnvelope' } } } } }
+  /journal:
+    get: { operationId: getJournal, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/JournalEnvelope' } } } } } }
+  /validation:
+    get: { operationId: getValidation, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ValidationEnvelope' } } } } } }
+  /logs:
+    get: { operationId: getLogs, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/LogsEnvelope' } } } } } }
+  /audit:
+    get: { operationId: getAudit, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AuditEnvelope' } } } } } }
+  /audit/{id}/rollback:
+    post:
+      operationId: rollback
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }, { $ref: '#/components/parameters/IdempotencyKey' }]
+      responses: { '202': { description: Accepted, content: { application/json: { schema: { $ref: '#/components/schemas/DiffEnvelope' } } } } }
+  /profiles:
+    get: { operationId: listProfiles, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ProfilesEnvelope' } } } } } }
+    post: { operationId: createProfile, responses: { '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/ProfilesEnvelope' } } } } } }
+components:
+  parameters:
+    IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+  schemas:
+    Error: { type: object, required: [code,message], properties: { code: { type: string }, message: { type: string }, field: { type: [string,'null'] } } }
+    EnvelopeBase: { type: object, required: [error,server_time_utc,api_version], properties: { error: { anyOf: [{ $ref: '#/components/schemas/Error' },{ type: 'null' }] }, server_time_utc: { type: string, format: date-time }, api_version: { type: string } } }
+    Status: { type: object, required: [backend,ea,mt5,last_heartbeat_utc], properties: { backend: { type: string, enum: [online,offline] }, ea: { type: string, enum: [online,offline] }, mt5: { type: string, enum: [online,offline] }, last_heartbeat_utc: { type: string,format: date-time } } }
+    StatusEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object, required: [data], properties: { data: { $ref: '#/components/schemas/Status' } } }] }
+    EaState: { type: object, required: [mode,risk_active,session,live_prerequisites], properties: { mode: { type: string, enum: [DEMO,FORWARD,LIVE] }, equity: { type: [number,'null'] }, pnl_today: { type: [number,'null'] }, risk_active: { type: boolean }, risk_reason: { type: [string,'null'] }, session: { type: string }, trend_h1: { type: [string,'null'] }, trend_h4: { type: [string,'null'] }, atr: { type: [number,'null'] }, spread: { type: [number,'null'] }, trades_today: { type: [integer,'null'] }, last_rejection: { type: [string,'null'] }, live_prerequisites: { type: array, items: { type: object, required: [key,ok,reason], properties: { key:{type:string},ok:{type:boolean},reason:{type:string} } } } } }
+    EaStateEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object, required: [data], properties: { data: { $ref: '#/components/schemas/EaState' } } }] }
+    Position: { type: object, required: [id,side,entry,sl,tp,lot,r,status,risk_free], properties: { id:{type:string},side:{type:string,enum:[BUY,SELL]},entry:{type:number},sl:{type:number},tp:{type:number},lot:{type:number},r:{type:number},status:{type:string},risk_free:{type:boolean},time_exit_utc:{type:[string,'null'],format:date-time} } }
+    PositionsEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object, required: [data], properties: { data: { type: array, items: { $ref: '#/components/schemas/Position' } } } }] }
+    Signal: { type: object, required: [id,time_utc,decision,reasons], properties: { id:{type:string},time_utc:{type:string,format:date-time},decision:{type:string,enum:[BUY,SELL,WAIT,NO_SIGNAL]},reasons:{type:array,items:{type:string}},price:{type:[number,'null']} } }
+    SignalsEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object, required: [data], properties: { data: { type: object,required:[items,next_cursor],properties:{items:{type:array,items:{$ref:'#/components/schemas/Signal'}},next_cursor:{type:[string,'null']}} } } }] }
+    Candle: { type: object,required:[time,open,high,low,close],properties:{time:{type:integer},open:{type:number},high:{type:number},low:{type:number},close:{type:number}} }
+    ChartEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object,required:[data],properties:{data:{type:object,required:[candles,overlays],properties:{candles:{type:array,items:{$ref:'#/components/schemas/Candle'}},overlays:{type:array,items:{type:object,additionalProperties:true}}}}} }] }
+    RiskEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object,required:[data],properties:{data:{type:object,additionalProperties:true}} }] }
+    SettingsDraft: { type: object,additionalProperties:true }
+    SettingsData: { type: object,required:[version,values],properties:{version:{type:integer},values:{$ref:'#/components/schemas/SettingsDraft'},pending_next_day:{type:boolean}} }
+    SettingsEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object,required:[data],properties:{data:{$ref:'#/components/schemas/SettingsData'}} }] }
+    DiffItem: { type: object,required:[key,old_value,new_value,apply,risk_level,direction],properties:{key:{type:string},old_value:{},new_value:{},apply:{type:string,enum:[HOT,COLD]},risk_level:{type:string,enum:[LOW,MEDIUM,HIGH]},direction:{type:string,enum:[TIGHTER,LOOSER,NEUTRAL]}} }
+    DiffEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object,required:[data],properties:{data:{type:object,required:[base_version,diff],properties:{base_version:{type:integer},diff:{type:array,items:{$ref:'#/components/schemas/DiffItem'}}}}} }] }
+    ApplyRequest: { type: object,required:[base_version,values],properties:{base_version:{type:integer},values:{$ref:'#/components/schemas/SettingsDraft'}} }
+    Ack: { type: object,required:[request_id,status],properties:{request_id:{type:string},status:{type:string,enum:[PENDING,APPLIED,REJECTED,TIMEOUT]},reason:{type:[string,'null']},version:{type:[integer,'null']}} }
+    AckEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object,required:[data],properties:{data:{$ref:'#/components/schemas/Ack'}} }] }
+    GenericListEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object,required:[data],properties:{data:{type:array,items:{type:object,additionalProperties:true}}} }] }
+    JournalEnvelope: { $ref: '#/components/schemas/GenericListEnvelope' }
+    ValidationEnvelope: { $ref: '#/components/schemas/GenericListEnvelope' }
+    LogsEnvelope: { $ref: '#/components/schemas/GenericListEnvelope' }
+    AuditEnvelope: { $ref: '#/components/schemas/GenericListEnvelope' }
+    ProfilesEnvelope: { $ref: '#/components/schemas/GenericListEnvelope' }
