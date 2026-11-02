@@ -1,0 +1,52 @@
+{
+  "build": 6295,
+  "compile": [
+    {
+      "script": "InputsTest.mq5",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "script": "EconomicsTest.mq5",
+      "errors": 0,
+      "warnings": 0
+    }
+  ],
+  "input_defaults": 94,
+  "schema_match": true,
+  "unicode_controls_roundtrip": true,
+  "invalid_inputs": [
+    {
+      "field": "InpMagic",
+      "rejected": true
+    },
+    {
+      "field": "InpMinNetRR",
+      "rejected": true
+    },
+    {
+      "field": "InpRiskPerTrade",
+      "rejected": true
+    },
+    {
+      "field": "InpExecutionMode",
+      "rejected": true
+    }
+  ],
+  "economics": {
+    "suite": "economics",
+    "checks": 9,
+    "failures": 0,
+    "build": 6295
+  },
+  "account_used": false,
+  "orders_submitted": false,
+  "verified_date": "2026-11-02",
+  "sources_sha256_lf": {
+    "mql5/Include/Aurum/Economics.mqh": "a6e898ff3991db60b1d41a95fa5fbcf72bd752807297e62c91f973eab3cac169",
+    "mql5/Include/Aurum/GeneratedInputs.mqh": "6e8c2e6f4dac95bceee972cede25f0e5c27b4f3da2dd0a64d3fdad3f1b086ba2",
+    "mql5/Tests/EconomicsTest.mq5": "ec0e7a78518683948886a89eaadac199179f1e3e264a4d7059217d5ef24f5a6f",
+    "mql5/Tests/InputsTest.mq5": "94c600f206ec820d6ce73479b3e87986031025ffc919acac44a690bddb14b8df",
+    "mql5/Tests/Result.mqh": "c2fcbcf50cb287b684184b1656ef6cdff88affa2812026dc4846895a497f231a"
+  }
+}

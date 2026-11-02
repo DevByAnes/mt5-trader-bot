@@ -2,7 +2,7 @@
 
 | Area | Selected / source | Constraint and decision |
 |---|---|---|
-| MT5 | Official release history lists build 6230 (2026-09-24); actual broker build must be measured | [Release notes](https://www.metatrader5.com/en/releasenotes); no local terminal/compiler found, so no native test is claimed |
+| MT5 | Official release history checked initially; installed runtime later measured as build 6295 | [Release notes](https://www.metatrader5.com/en/releasenotes); local script compilation/execution now verified in [native results](NATIVE_TESTS.fa.md); no Demo account connected |
 | MQL5 execution | CTrade/CSymbolInfo/CPositionInfo/CAccountInfo; native preflight and transaction events | [CTrade](https://www.mql5.com/en/docs/standardlibrary/tradeclasses/ctrade), [profit](https://www.mql5.com/en/docs/trading/ordercalcprofit), [margin](https://www.mql5.com/en/docs/trading/ordercalcmargin), [preflight](https://www.mql5.com/en/docs/trading/ordercheck), [transactions](https://www.mql5.com/en/docs/event_handlers/ontradetransaction); netting/hedging, filling and stops/freeze rules must be evaluated at runtime |
 | Main bridge | FILE_COMMON, versioned signed bytes, temp/flush/replace | [FileMove](https://www.mql5.com/en/docs/files/filemove), [FileFlush](https://www.mql5.com/en/docs/files/fileflush); atomicity is tested on Python and must be verified in real MT5; not a cross-process database transaction |
 | Optional HTTP | WebRequest only as optional telemetry | [Reference](https://www.mql5.com/en/docs/network/webrequest): synchronous, URL allowlist, not available in Strategy Tester; never required by EA risk management |

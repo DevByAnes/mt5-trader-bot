@@ -11,3 +11,5 @@ The user chose **net RR ≥ 2, with TP adjusted for costs**. This supersedes the
 ## ADR-03 — progress without a terminal (explicit user question, 2026-11-02)
 
 Continue source implementation and tests using deterministic data and signed peer simulation. MT5 installation is not required to write the code. Native compile, Strategy Tester, broker retcodes/stops/freeze/filling behavior, actual netting/hedging and demo E2E remain unverified until a terminal/compiler is supplied. No such gate is silently marked passed. SIGNAL_ONLY is the default; native LIVE activation still requires its explicit gates and demo/forward acceptance.
+
+Update, 2026-11-02: user installed MT5/MetaEditor. Build 6295 compiled and ran the two existing non-trading test scripts in an isolated, account-free portable instance. The generated inputs and independent economic vectors pass. User confirmed no Demo account is connected. This clears the script-compilation gate only; the main EA, broker-dependent tests, Tester and Demo E2E remain outstanding. See `NATIVE_TESTS.fa.md`.

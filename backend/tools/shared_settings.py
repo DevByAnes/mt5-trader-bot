@@ -65,9 +65,11 @@ def outputs() -> dict[Path, str]:
             )
             if kind in {"number", "integer"}:
                 low, high, step = meta["minimum"], meta["maximum"], meta["multipleOf"]
+                # Native int cannot exceed INT_MAX; emitting that comparison warns in MetaEditor.
+                upper = f"{name}>{high} || " if kind != "integer" or high < 2147483647 else ""
                 validation.append(
                     f"   if(!MathIsValidNumber((double){name}) || {name}<{low} || "
-                    f"{name}>{high} || MathAbs({name}/{float(step)}-"
+                    f"{upper}MathAbs({name}/{float(step)}-"
                     f"MathRound({name}/{float(step)}))>1e-7) "
                     f'{{reason="{name}: range or step";return false;}}'
                 )
@@ -82,14 +84,14 @@ def outputs() -> dict[Path, str]:
         "string AurumJsonQuote(string value)",
         "{",
         r'   string result="\"";',
-        '   for(int i=0;i<StringLen(value);i++)',
-        '   {',
-        '      ushort code=StringGetCharacter(value,i);',
+        "   for(int i=0;i<StringLen(value);i++)",
+        "   {",
+        "      ushort code=StringGetCharacter(value,i);",
         r'      if(code==34) result+="\\\"";',
         r'      else if(code==92) result+="\\\\";',
         r'      else if(code<32) result+=StringFormat("\\u%04x",(uint)code);',
-        '      else result+=ShortToString(code);',
-        '   }',
+        "      else result+=ShortToString(code);",
+        "   }",
         r'   return result+"\"";',
         "}",
         "",

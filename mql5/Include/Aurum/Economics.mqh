@@ -8,7 +8,8 @@ double AurumRequiredReward(const double loss,const double stop_cost,const double
    if(!MathIsValidNumber(loss) || !MathIsValidNumber(stop_cost) ||
       !MathIsValidNumber(target_cost) || loss<=0 || stop_cost<0 || target_cost<0 ||
       minimum_net_rr<2 || !MathIsValidNumber(minimum_net_rr)) return -1;
-   return minimum_net_rr*(loss+stop_cost)+target_cost;
+   double reward=minimum_net_rr*(loss+stop_cost)+target_cost;
+   return MathIsValidNumber(reward)?reward:-1;
 }
 
 bool AurumVolumeForRisk(const string symbol,const ENUM_ORDER_TYPE side,const double entry,

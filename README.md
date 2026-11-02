@@ -4,7 +4,7 @@ React / TypeScript / Tauri 2 operations console for an XAUUSD EA through a local
 
 Use Node 24 and pnpm 10.28.2. Direct dependency versions are pinned; `pnpm-lock.yaml` is the CI lock. The npm lock is retained for the existing npm workflow.
 
-The Python bridge now has a separate **FILE mode** with authenticated snapshots, durable SQLite outbox/idempotency, version reservations and hash-chained audit. Missing EA data stays unavailable. The MQL5 directory currently contains generated inputs, economic helpers and native test scripts; **the main EA and its native acceptance are unfinished**. This is a development milestone, not a trading release. See the [phased checklist](docs/IMPLEMENTATION_PLAN.md), [milestone test report](docs/REPORT_B2.fa.md), [architecture decisions](docs/DECISIONS.md), [research](docs/RESEARCH_SYSTEM.md) and [FILE protocol/activation](docs/BRIDGE_PROTOCOL.md).
+The Python bridge now has a separate **FILE mode** with authenticated snapshots, durable SQLite outbox/idempotency, version reservations and hash-chained audit. Missing EA data stays unavailable. The MQL5 directory currently contains generated inputs, economic helpers and native test scripts. These scripts now compile without errors/warnings and pass on MT5 build 6295; **the main EA and its native acceptance are unfinished**. This is a development milestone, not a trading release. See the [phased checklist](docs/IMPLEMENTATION_PLAN.md), [milestone test report](docs/REPORT_B2.fa.md), [native test results and reproduction](docs/NATIVE_TESTS.fa.md), [architecture decisions](docs/DECISIONS.md), [research](docs/RESEARCH_SYSTEM.md) and [FILE protocol/activation](docs/BRIDGE_PROTOCOL.md).
 
 ```powershell
 pnpm install --frozen-lockfile

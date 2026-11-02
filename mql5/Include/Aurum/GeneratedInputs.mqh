@@ -138,7 +138,7 @@ bool AurumValidateInputs(string &reason)
 {
    if((int)InpExecutionMode<0 || (int)InpExecutionMode>=3) {reason="InpExecutionMode: invalid enum"; return false;}
    if(StringLen(InpSymbol)<1 || StringLen(InpSymbol)>128) {reason="InpSymbol: length";return false;}
-   if(!MathIsValidNumber((double)InpMagic) || InpMagic<1 || InpMagic>2147483647 || MathAbs(InpMagic/1.0-MathRound(InpMagic/1.0))>1e-7) {reason="InpMagic: range or step";return false;}
+   if(!MathIsValidNumber((double)InpMagic) || InpMagic<1 || MathAbs(InpMagic/1.0-MathRound(InpMagic/1.0))>1e-7) {reason="InpMagic: range or step";return false;}
    if(!MathIsValidNumber((double)InpDeviationPoints) || InpDeviationPoints<0 || InpDeviationPoints>100 || MathAbs(InpDeviationPoints/1.0-MathRound(InpDeviationPoints/1.0))>1e-7) {reason="InpDeviationPoints: range or step";return false;}
    if((int)InpCapitalBasis<0 || (int)InpCapitalBasis>=2) {reason="InpCapitalBasis: invalid enum"; return false;}
    if((int)InpRiskProfile<0 || (int)InpRiskProfile>=4) {reason="InpRiskProfile: invalid enum"; return false;}
