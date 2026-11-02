@@ -91,7 +91,7 @@ def main() -> None:
     shutil.copytree(ROOT / "mql5", stage)
     compiled = [
         compile_script(editor, stage / "Tests" / name, evidence)
-        for name in ["InputsTest.mq5", "EconomicsTest.mq5"]
+        for name in ["InputsTest.mq5", "EconomicsTest.mq5", "BrokerReadOnlyTest.mq5"]
     ]
     runtime = evidence / "runtime"
     runtime.mkdir()

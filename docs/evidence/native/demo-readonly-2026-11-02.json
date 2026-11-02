@@ -1,0 +1,46 @@
+{
+  "native": {
+    "suite": "broker_read_only",
+    "account_type": "DEMO",
+    "build": 6295,
+    "symbol": "XAUUSD",
+    "utc_epoch": 1793648899,
+    "server_epoch": 1793656099,
+    "broker_minus_utc_seconds": 7200,
+    "tick_age_server_seconds": 2,
+    "sdk_timestamp_is_server_clock": true,
+    "checks": 6,
+    "failures": 0,
+    "costs_test_only": true,
+    "orders_submitted": false,
+    "results": [
+      {
+        "side": "BUY",
+        "estimates_valid": true,
+        "volume_test_pass": true,
+        "target_test_pass": true
+      },
+      {
+        "side": "SELL",
+        "estimates_valid": true,
+        "volume_test_pass": true,
+        "target_test_pass": true
+      }
+    ]
+  },
+  "sdk": {
+    "checked_at_utc": "2026-11-02T19:49:16.100991+00:00",
+    "terminal_build": 6295,
+    "account_type": "DEMO",
+    "margin_mode": "HEDGING",
+    "symbol": "XAUUSD",
+    "source_clock_status": "FRESH",
+    "explicit_source_offset_minutes": 120,
+    "history_utc_accepted": true,
+    "closed_m15_bars": 47,
+    "history_gaps": 0,
+    "parquet_roundtrip": true,
+    "orders_submitted": false,
+    "project_ea_status": "NOT_IMPLEMENTED"
+  }
+}

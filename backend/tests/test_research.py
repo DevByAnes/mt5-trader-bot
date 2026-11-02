@@ -119,3 +119,36 @@ def test_read_only_adapter_uses_explicit_data_capability() -> None:
     assert len(result) == 1 and result[0].time == 0
     terminal.close()
     assert closed == [True]
+
+
+def test_explicit_broker_clock_offset_changes_queries_and_normalizes_closed_bars() -> None:
+    calls = []
+    values = [
+        {"time": 7200, "open": 10, "high": 11, "low": 9, "close": 10, "tick_volume": 4},
+        {"time": 8100, "open": 10, "high": 11, "low": 9, "close": 10, "tick_volume": 4},
+    ]
+
+    def rates(symbol: str, tf: int, start: datetime, end: datetime) -> list[dict[str, int]]:
+        calls.append((start.timestamp(), end.timestamp()))
+        return values
+
+    terminal = ReadOnlyTerminal(
+        "test",
+        TerminalReads(lambda p: True, lambda: None, rates, 15),
+        source_utc_offset_minutes=120,
+    )
+    result = terminal.m15(
+        "XAUUSD",
+        datetime.fromtimestamp(0, UTC),
+        datetime.fromtimestamp(1200, UTC),
+        as_of=datetime.fromtimestamp(1200, UTC),
+    )
+    terminal.close()
+    assert calls == [(7200, 8400)]
+    assert len(result) == 1 and result[0].time == 0
+
+
+@pytest.mark.parametrize("offset", [-721, 841, 1, True])
+def test_invalid_broker_clock_offsets_are_rejected_before_connecting(offset: int) -> None:
+    with pytest.raises(DataQualityError, match="offset"):
+        ReadOnlyTerminal("test", source_utc_offset_minutes=offset)
