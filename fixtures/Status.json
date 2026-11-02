@@ -1,0 +1,23 @@
+{
+  "data": {
+    "backend": {
+      "state": "healthy",
+      "heartbeat_utc": "2026-11-02T10:00:00Z",
+      "latency_ms": 12
+    },
+    "ea": {
+      "state": "healthy",
+      "heartbeat_utc": "2026-11-02T10:00:00Z",
+      "latency_ms": 28
+    },
+    "mt5": {
+      "state": "healthy",
+      "heartbeat_utc": "2026-11-02T10:00:00Z",
+      "latency_ms": 41
+    },
+    "broker_offset_minutes": 120
+  },
+  "error": null,
+  "server_time_utc": "2026-11-02T10:00:00Z",
+  "api_version": "1.0.0"
+}

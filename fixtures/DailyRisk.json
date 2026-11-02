@@ -1,0 +1,19 @@
+{
+  "data": {
+    "state": "ACTIVE",
+    "reason": null,
+    "start_equity": 10000,
+    "current_equity": 10042.16,
+    "loss_limit_amount": 200,
+    "loss_remaining": 200,
+    "loss_remaining_percent": 100,
+    "profit_target_amount": 300,
+    "profit_remaining": 257.84,
+    "profit_remaining_percent": 86,
+    "trades_remaining": 6,
+    "next_day_utc": "2026-11-03T00:00:00Z"
+  },
+  "error": null,
+  "server_time_utc": "2026-11-02T10:00:00Z",
+  "api_version": "1.0.0"
+}

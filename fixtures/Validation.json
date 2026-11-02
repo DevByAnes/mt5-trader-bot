@@ -1,0 +1,17 @@
+{
+  "data": {
+    "items": [
+      {
+        "id": "v1",
+        "test": "Walk-forward",
+        "status": "REVIEW",
+        "period": "2024–2026",
+        "evidence": "Simulated evidence only; backend report required"
+      }
+    ],
+    "next_cursor": null
+  },
+  "error": null,
+  "server_time_utc": "2026-11-02T10:00:00Z",
+  "api_version": "1.0.0"
+}

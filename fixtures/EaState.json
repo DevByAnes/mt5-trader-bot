@@ -1,0 +1,38 @@
+{
+  "data": {
+    "mode": "PAPER",
+    "equity": 10042.16,
+    "pnl_today": 42.16,
+    "risk_active": true,
+    "risk_reason": null,
+    "session": "London / New York",
+    "trend_h1": "Bullish",
+    "trend_h4": "Neutral",
+    "h1_strength": 72,
+    "h4_strength": 48,
+    "atr": 18.4,
+    "spread": 21,
+    "trades_today": 2,
+    "last_rejection": "SPREAD_LIMIT · 41 > 35",
+    "live_prerequisites": [
+      {
+        "key": "demo",
+        "ok": true,
+        "reason": "Demo evidence reviewed"
+      },
+      {
+        "key": "forward",
+        "ok": true,
+        "reason": "Forward evidence reviewed"
+      },
+      {
+        "key": "real_account_opt_in",
+        "ok": false,
+        "reason": "MT5 permission disabled"
+      }
+    ]
+  },
+  "error": null,
+  "server_time_utc": "2026-11-02T10:00:00Z",
+  "api_version": "1.0.0"
+}

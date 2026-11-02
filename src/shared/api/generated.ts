@@ -43,7 +43,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["listPositions"];
+        get: operations["getPositions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -59,7 +59,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["listSignals"];
+        get: operations["getSignals"];
         put?: never;
         post?: never;
         delete?: never;
@@ -100,14 +100,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/settings": {
+    "/telemetry": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getSettings"];
+        get: operations["getTelemetry"];
         put?: never;
         post?: never;
         delete?: never;
@@ -116,48 +116,16 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/settings/validate": {
+    "/settings": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["getSettingsData"];
         put?: never;
-        post: operations["validateSettings"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/settings/apply": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["applySettings"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/commands/{command}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["sendCommand"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -228,6 +196,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["settingsvalidate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["settingsapply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/commands/{command}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["commandscommand"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/audit/{id}/rollback": {
         parameters: {
             query?: never;
@@ -237,23 +269,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["rollback"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/profiles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listProfiles"];
-        put?: never;
-        post: operations["createProfile"];
+        post: operations["auditidrollback"];
         delete?: never;
         options?: never;
         head?: never;
@@ -265,146 +281,392 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         Error: {
-            code: string;
+            /** @enum {string} */
+            code: "VALIDATION_ERROR" | "VERSION_CONFLICT" | "MT5_ONLY" | "LIVE_LOCKED" | "EA_OFFLINE" | "UNAUTHORIZED" | "NOT_FOUND" | "IDEMPOTENCY_CONFLICT" | "UNAVAILABLE";
             message: string;
-            field?: string | null;
+            field?: string;
         };
-        EnvelopeBase: {
-            error: components["schemas"]["Error"] | null;
-            /** Format: date-time */
-            server_time_utc: string;
-            api_version: string;
+        HealthNode: {
+            /** @enum {string} */
+            state: "healthy" | "stale" | "offline";
+            heartbeat_utc: string | null;
+            latency_ms: number | null;
         };
         Status: {
-            /** @enum {string} */
-            backend: "online" | "offline";
-            /** @enum {string} */
-            ea: "online" | "offline";
-            /** @enum {string} */
-            mt5: "online" | "offline";
-            /** Format: date-time */
-            last_heartbeat_utc: string;
-        };
-        StatusEnvelope: components["schemas"]["EnvelopeBase"] & {
-            data: components["schemas"]["Status"];
+            backend: components["schemas"]["HealthNode"];
+            ea: components["schemas"]["HealthNode"];
+            mt5: components["schemas"]["HealthNode"];
+            broker_offset_minutes: number | null;
         };
         EaState: {
             /** @enum {string} */
-            mode: "DEMO" | "FORWARD" | "LIVE";
-            equity?: number | null;
-            pnl_today?: number | null;
-            risk_active: boolean;
-            risk_reason?: string | null;
+            mode: "SIGNAL_ONLY" | "PAPER" | "LIVE";
+            equity: number | null;
+            pnl_today: number | null;
+            risk_active: boolean | null;
+            risk_reason: string | null;
             session: string;
-            trend_h1?: string | null;
-            trend_h4?: string | null;
-            atr?: number | null;
-            spread?: number | null;
-            trades_today?: number | null;
-            last_rejection?: string | null;
+            trend_h1: string | null;
+            trend_h4: string | null;
+            h1_strength: number | null;
+            h4_strength: number | null;
+            atr: number | null;
+            spread: number | null;
+            trades_today: number | null;
+            last_rejection: string | null;
             live_prerequisites: {
-                key: unknown;
-                ok: unknown;
-                reason: unknown;
+                key: string;
+                ok: boolean;
+                reason: string;
             }[];
         };
-        EaStateEnvelope: components["schemas"]["EnvelopeBase"] & {
-            data: components["schemas"]["EaState"];
-        };
         Position: {
-            id: unknown;
-            /** @enum {unknown} */
+            id: string;
+            /** @enum {string} */
             side: "BUY" | "SELL";
-            entry: unknown;
-            sl: unknown;
-            tp: unknown;
-            lot: unknown;
-            r: unknown;
-            status: unknown;
-            risk_free: unknown;
-            time_exit_utc?: string | null;
-        };
-        PositionsEnvelope: components["schemas"]["EnvelopeBase"] & {
-            data: components["schemas"]["Position"][];
+            entry: number | null;
+            sl: number | null;
+            tp: number | null;
+            lot: number | null;
+            r: number | null;
+            status: string;
+            risk_free: boolean | null;
+            time_exit_utc: string | null;
         };
         Signal: {
-            id: unknown;
-            time_utc: unknown;
-            /** @enum {unknown} */
+            id: string;
+            /** Format: date-time */
+            time_utc: string;
+            /** @enum {string} */
             decision: "BUY" | "SELL" | "WAIT" | "NO_SIGNAL";
-            reasons: unknown;
-            price?: number | null;
-        };
-        SignalsEnvelope: components["schemas"]["EnvelopeBase"] & {
-            data: {
-                items: unknown;
-                next_cursor: string | null;
-            };
+            reasons: string[];
+            price: number | null;
+            reason_code: string | null;
+            actual: number | null;
+            limit: number | null;
         };
         Candle: {
-            time: unknown;
-            open: unknown;
-            high: unknown;
-            low: unknown;
-            close: unknown;
+            time: number;
+            open: number;
+            high: number;
+            low: number;
+            close: number;
         };
-        ChartEnvelope: components["schemas"]["EnvelopeBase"] & {
-            data: {
-                candles: unknown;
-                overlays: unknown;
-            };
+        Chart: {
+            candles: components["schemas"]["Candle"][];
+            overlays: {
+                label: string;
+                price: number;
+            }[];
         };
-        RiskEnvelope: components["schemas"]["EnvelopeBase"] & {
-            data: unknown;
+        DailyRisk: {
+            /** @enum {string} */
+            state: "ACTIVE" | "STOPPED";
+            reason: string | null;
+            start_equity: number | null;
+            current_equity: number | null;
+            loss_limit_amount: number | null;
+            loss_remaining: number | null;
+            loss_remaining_percent: number | null;
+            profit_target_amount: number | null;
+            profit_remaining: number | null;
+            profit_remaining_percent: number | null;
+            trades_remaining: number | null;
+            /** Format: date-time */
+            next_day_utc: string;
         };
-        SettingsDraft: Record<string, never>;
+        Telemetry: {
+            equity: (number | null)[];
+            spread: (number | null)[];
+            atr: (number | null)[];
+        };
+        SettingsDraft: {
+            /** @enum {string} */
+            executionMode: "SIGNAL_ONLY" | "PAPER" | "LIVE";
+            riskPerTrade: number;
+            dailyLossLimit: number;
+            maxSpread: number;
+            allowRemoteConfig: boolean;
+            allowRealAccount: boolean;
+        };
         SettingsData: {
-            version: unknown;
-            values: unknown;
-            pending_next_day?: unknown;
-        };
-        SettingsEnvelope: components["schemas"]["EnvelopeBase"] & {
-            data: unknown;
+            version: number;
+            values: components["schemas"]["SettingsDraft"];
+            pending_next_day: boolean;
         };
         DiffItem: {
-            key: unknown;
-            old_value: unknown;
-            new_value: unknown;
-            /** @enum {unknown} */
+            key: string;
+            old_value: string | number | boolean;
+            new_value: string | number | boolean;
+            /** @enum {string} */
             apply: "HOT" | "COLD";
-            /** @enum {unknown} */
+            /** @enum {string} */
             risk_level: "LOW" | "MEDIUM" | "HIGH";
-            /** @enum {unknown} */
+            /** @enum {string} */
             direction: "TIGHTER" | "LOOSER" | "NEUTRAL";
         };
-        DiffEnvelope: components["schemas"]["EnvelopeBase"] & {
-            data: {
-                base_version: unknown;
-                diff: unknown;
-            };
+        Diff: {
+            base_version: number;
+            diff: components["schemas"]["DiffItem"][];
+            values: components["schemas"]["SettingsDraft"];
         };
         ApplyRequest: {
-            base_version: unknown;
-            values: unknown;
+            base_version: number;
+            values: components["schemas"]["SettingsDraft"];
         };
         Ack: {
-            request_id: unknown;
-            /** @enum {unknown} */
+            request_id: string;
+            /** @enum {string} */
             status: "PENDING" | "APPLIED" | "REJECTED" | "TIMEOUT";
-            reason?: string | null;
-            version?: number | null;
+            reason: string | null;
+            version: number | null;
+            ea_ack_utc: string | null;
         };
-        AckEnvelope: components["schemas"]["EnvelopeBase"] & {
-            data: unknown;
+        CommandRequest: {
+            position_id?: string;
         };
-        GenericListEnvelope: components["schemas"]["EnvelopeBase"] & {
-            data: unknown;
+        JournalRecord: {
+            id: string;
+            /** Format: date-time */
+            time_utc: string;
+            /** @enum {string} */
+            side: "BUY" | "SELL";
+            r: number | null;
+            session: string;
+            result: string;
         };
-        JournalEnvelope: components["schemas"]["GenericListEnvelope"];
-        ValidationEnvelope: components["schemas"]["GenericListEnvelope"];
-        LogsEnvelope: components["schemas"]["GenericListEnvelope"];
-        AuditEnvelope: components["schemas"]["GenericListEnvelope"];
-        ProfilesEnvelope: components["schemas"]["GenericListEnvelope"];
+        ValidationRecord: {
+            id: string;
+            test: string;
+            /** @enum {string} */
+            status: "PASS" | "REVIEW" | "FAIL";
+            period: string;
+            evidence: string;
+        };
+        LogRecord: {
+            id: string;
+            /** Format: date-time */
+            time_utc: string;
+            /** @enum {string} */
+            level: "INFO" | "WARN" | "ERROR";
+            source: string;
+            message: string;
+        };
+        AuditRecord: {
+            id: string;
+            /** Format: date-time */
+            time_utc: string;
+            actor: string;
+            action: string;
+            version: number;
+            result: string;
+            previous_values: components["schemas"]["SettingsDraft"];
+        };
+        Signals: {
+            items: components["schemas"]["Signal"][];
+            next_cursor: string | null;
+        };
+        Journal: {
+            items: components["schemas"]["JournalRecord"][];
+            next_cursor: string | null;
+        };
+        Validation: {
+            items: components["schemas"]["ValidationRecord"][];
+            next_cursor: string | null;
+        };
+        Logs: {
+            items: components["schemas"]["LogRecord"][];
+            next_cursor: string | null;
+        };
+        Audit: {
+            items: components["schemas"]["AuditRecord"][];
+            next_cursor: string | null;
+        };
+        Positions: components["schemas"]["Position"][];
+        StatusEnvelope: {
+            data: components["schemas"]["Status"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        EaStateEnvelope: {
+            data: components["schemas"]["EaState"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        PositionEnvelope: {
+            data: components["schemas"]["Position"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        SignalEnvelope: {
+            data: components["schemas"]["Signal"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        CandleEnvelope: {
+            data: components["schemas"]["Candle"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        ChartEnvelope: {
+            data: components["schemas"]["Chart"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        DailyRiskEnvelope: {
+            data: components["schemas"]["DailyRisk"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        TelemetryEnvelope: {
+            data: components["schemas"]["Telemetry"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        SettingsDataEnvelope: {
+            data: components["schemas"]["SettingsData"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        DiffItemEnvelope: {
+            data: components["schemas"]["DiffItem"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        DiffEnvelope: {
+            data: components["schemas"]["Diff"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        AckEnvelope: {
+            data: components["schemas"]["Ack"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        JournalRecordEnvelope: {
+            data: components["schemas"]["JournalRecord"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        ValidationRecordEnvelope: {
+            data: components["schemas"]["ValidationRecord"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        LogRecordEnvelope: {
+            data: components["schemas"]["LogRecord"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        AuditRecordEnvelope: {
+            data: components["schemas"]["AuditRecord"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        SignalsEnvelope: {
+            data: components["schemas"]["Signals"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        JournalEnvelope: {
+            data: components["schemas"]["Journal"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        ValidationEnvelope: {
+            data: components["schemas"]["Validation"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        LogsEnvelope: {
+            data: components["schemas"]["Logs"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        AuditEnvelope: {
+            data: components["schemas"]["Audit"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        PositionsEnvelope: {
+            data: components["schemas"]["Positions"];
+            error: components["schemas"]["Error"] | null;
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
+        ErrorEnvelope: {
+            data: null;
+            error: components["schemas"]["Error"];
+            /** Format: date-time */
+            server_time_utc: string;
+            /** @constant */
+            api_version: "1.0.0";
+        };
     };
     responses: never;
     parameters: {
@@ -434,6 +696,69 @@ export interface operations {
                     "application/json": components["schemas"]["StatusEnvelope"];
                 };
             };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
         };
     };
     getEaState: {
@@ -454,9 +779,72 @@ export interface operations {
                     "application/json": components["schemas"]["EaStateEnvelope"];
                 };
             };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
         };
     };
-    listPositions: {
+    getPositions: {
         parameters: {
             query?: never;
             header?: never;
@@ -474,13 +862,76 @@ export interface operations {
                     "application/json": components["schemas"]["PositionsEnvelope"];
                 };
             };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
         };
     };
-    listSignals: {
+    getSignals: {
         parameters: {
             query?: {
                 cursor?: string;
-                decision?: string;
+                limit?: number;
             };
             header?: never;
             path?: never;
@@ -495,6 +946,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SignalsEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
         };
@@ -517,6 +1031,69 @@ export interface operations {
                     "application/json": components["schemas"]["ChartEnvelope"];
                 };
             };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
         };
     };
     getDailyRisk: {
@@ -534,12 +1111,75 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RiskEnvelope"];
+                    "application/json": components["schemas"]["DailyRiskEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
         };
     };
-    getSettings: {
+    getTelemetry: {
         parameters: {
             query?: never;
             header?: never;
@@ -554,23 +1194,82 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SettingsEnvelope"];
+                    "application/json": components["schemas"]["TelemetryEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
         };
     };
-    validateSettings: {
+    getSettingsData: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SettingsDraft"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -578,70 +1277,80 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DiffEnvelope"];
+                    "application/json": components["schemas"]["SettingsDataEnvelope"];
                 };
             };
-        };
-    };
-    applySettings: {
-        parameters: {
-            query?: never;
-            header: {
-                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ApplyRequest"];
-            };
-        };
-        responses: {
-            /** @description Accepted */
-            202: {
+            /** @description See Error.code; request was not applied */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AckEnvelope"];
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
-        };
-    };
-    sendCommand: {
-        parameters: {
-            query?: never;
-            header: {
-                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
-            };
-            path: {
-                command: "kill-switch" | "risk-free-all" | "risk-free-position" | "close-position";
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    position_id?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Accepted */
-            202: {
+            /** @description See Error.code; request was not applied */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AckEnvelope"];
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
         };
     };
     getJournal: {
         parameters: {
-            query?: never;
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -657,11 +1366,77 @@ export interface operations {
                     "application/json": components["schemas"]["JournalEnvelope"];
                 };
             };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
         };
     };
     getValidation: {
         parameters: {
-            query?: never;
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -677,11 +1452,77 @@ export interface operations {
                     "application/json": components["schemas"]["ValidationEnvelope"];
                 };
             };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
         };
     };
     getLogs: {
         parameters: {
-            query?: never;
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -697,11 +1538,77 @@ export interface operations {
                     "application/json": components["schemas"]["LogsEnvelope"];
                 };
             };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
         };
     };
     getAudit: {
         parameters: {
-            query?: never;
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -717,37 +1624,78 @@ export interface operations {
                     "application/json": components["schemas"]["AuditEnvelope"];
                 };
             };
-        };
-    };
-    rollback: {
-        parameters: {
-            query?: never;
-            header: {
-                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
+            /** @description See Error.code; request was not applied */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DiffEnvelope"];
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
         };
     };
-    listProfiles: {
+    getAck: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -758,27 +1706,422 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProfilesEnvelope"];
+                    "application/json": components["schemas"]["AckEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
         };
     };
-    createProfile: {
+    settingsvalidate: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplyRequest"];
+            };
+        };
         responses: {
-            /** @description Created */
-            201: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProfilesEnvelope"];
+                    "application/json": components["schemas"]["DiffEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    settingsapply: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AckEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    commandscommand: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                command: "kill-switch" | "risk-free-all" | "risk-free-position" | "close-position";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommandRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AckEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    auditidrollback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiffEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description See Error.code; request was not applied */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
         };

@@ -1,0 +1,9 @@
+{
+  "data": null,
+  "error": {
+    "code": "VERSION_CONFLICT",
+    "message": "Reload current settings"
+  },
+  "server_time_utc": "2026-11-02T10:00:00Z",
+  "api_version": "1.0.0"
+}

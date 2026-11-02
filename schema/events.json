@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aurum.local/events/1.0.0",
+  "title": "Bridge event",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "ea_state"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "server_time_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "$ref": "openapi.yaml#/components/schemas/EaState"
+        }
+      },
+      "required": [
+        "type",
+        "seq",
+        "server_time_utc",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "position"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "server_time_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "$ref": "openapi.yaml#/components/schemas/Positions"
+        }
+      },
+      "required": [
+        "type",
+        "seq",
+        "server_time_utc",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "signal"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "server_time_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "$ref": "openapi.yaml#/components/schemas/Signal"
+        }
+      },
+      "required": [
+        "type",
+        "seq",
+        "server_time_utc",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "risk_mode"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "server_time_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "$ref": "openapi.yaml#/components/schemas/DailyRisk"
+        }
+      },
+      "required": [
+        "type",
+        "seq",
+        "server_time_utc",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "log"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "server_time_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "$ref": "openapi.yaml#/components/schemas/LogRecord"
+        }
+      },
+      "required": [
+        "type",
+        "seq",
+        "server_time_utc",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "command_ack"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "server_time_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "$ref": "openapi.yaml#/components/schemas/Ack"
+        }
+      },
+      "required": [
+        "type",
+        "seq",
+        "server_time_utc",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "config_ack"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "server_time_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "$ref": "openapi.yaml#/components/schemas/Ack"
+        }
+      },
+      "required": [
+        "type",
+        "seq",
+        "server_time_utc",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "heartbeat"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "server_time_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "$ref": "openapi.yaml#/components/schemas/Status"
+        }
+      },
+      "required": [
+        "type",
+        "seq",
+        "server_time_utc",
+        "payload"
+      ]
+    }
+  ],
+  "x-protocol": {
+    "version": "1.0.0",
+    "heartbeat_ms": 2000,
+    "stale_ms": 6000,
+    "offline_ms": 15000,
+    "snapshot": "GET every active query after open or seq gap. Ignore duplicates and old seq. HTTP snapshot is authoritative; events invalidate caches. New socket resets seq baseline.",
+    "ack": "Correlate request_id; poll /requests/{id}. Only APPLIED with ea_ack_utc proves EA acknowledgement. TIMEOUT is unknown; do not resubmit automatically."
+  }
+}

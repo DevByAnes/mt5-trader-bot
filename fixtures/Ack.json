@@ -1,0 +1,12 @@
+{
+  "data": {
+    "request_id": "fixture-request",
+    "status": "APPLIED",
+    "reason": null,
+    "version": 8,
+    "ea_ack_utc": "2026-11-02T10:00:00Z"
+  },
+  "error": null,
+  "server_time_utc": "2026-11-02T10:00:00Z",
+  "api_version": "1.0.0"
+}

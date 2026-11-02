@@ -1,85 +1,3479 @@
-openapi: 3.1.0
-info: { title: XAUUSD Local Bridge API, version: 1.0.0 }
-servers: [{ url: http://127.0.0.1:8765/api/v1 }]
-paths:
-  /status:
-    get: { operationId: getStatus, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/StatusEnvelope' } } } } } }
-  /ea/state:
-    get: { operationId: getEaState, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EaStateEnvelope' } } } } } }
-  /positions:
-    get: { operationId: listPositions, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PositionsEnvelope' } } } } } }
-  /signals:
-    get:
-      operationId: listSignals
-      parameters: [{ name: cursor, in: query, schema: { type: string } }, { name: decision, in: query, schema: { type: string } }]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SignalsEnvelope' } } } } }
-  /chart:
-    get: { operationId: getChart, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ChartEnvelope' } } } } } }
-  /risk/daily:
-    get: { operationId: getDailyRisk, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/RiskEnvelope' } } } } } }
-  /settings:
-    get: { operationId: getSettings, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SettingsEnvelope' } } } } } }
-  /settings/validate:
-    post:
-      operationId: validateSettings
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/SettingsDraft' } } } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DiffEnvelope' } } } } }
-  /settings/apply:
-    post:
-      operationId: applySettings
-      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ApplyRequest' } } } }
-      responses: { '202': { description: Accepted, content: { application/json: { schema: { $ref: '#/components/schemas/AckEnvelope' } } } } }
-  /commands/{command}:
-    post:
-      operationId: sendCommand
-      parameters: [{ name: command, in: path, required: true, schema: { type: string, enum: [kill-switch,risk-free-all,risk-free-position,close-position] } }, { $ref: '#/components/parameters/IdempotencyKey' }]
-      requestBody: { content: { application/json: { schema: { type: object, properties: { position_id: { type: string } } } } } }
-      responses: { '202': { description: Accepted, content: { application/json: { schema: { $ref: '#/components/schemas/AckEnvelope' } } } } }
-  /journal:
-    get: { operationId: getJournal, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/JournalEnvelope' } } } } } }
-  /validation:
-    get: { operationId: getValidation, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ValidationEnvelope' } } } } } }
-  /logs:
-    get: { operationId: getLogs, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/LogsEnvelope' } } } } } }
-  /audit:
-    get: { operationId: getAudit, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AuditEnvelope' } } } } } }
-  /audit/{id}/rollback:
-    post:
-      operationId: rollback
-      parameters: [{ name: id, in: path, required: true, schema: { type: string } }, { $ref: '#/components/parameters/IdempotencyKey' }]
-      responses: { '202': { description: Accepted, content: { application/json: { schema: { $ref: '#/components/schemas/DiffEnvelope' } } } } }
-  /profiles:
-    get: { operationId: listProfiles, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ProfilesEnvelope' } } } } } }
-    post: { operationId: createProfile, responses: { '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/ProfilesEnvelope' } } } } } }
-components:
-  parameters:
-    IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
-  schemas:
-    Error: { type: object, required: [code,message], properties: { code: { type: string }, message: { type: string }, field: { type: [string,'null'] } } }
-    EnvelopeBase: { type: object, required: [error,server_time_utc,api_version], properties: { error: { anyOf: [{ $ref: '#/components/schemas/Error' },{ type: 'null' }] }, server_time_utc: { type: string, format: date-time }, api_version: { type: string } } }
-    Status: { type: object, required: [backend,ea,mt5,last_heartbeat_utc], properties: { backend: { type: string, enum: [online,offline] }, ea: { type: string, enum: [online,offline] }, mt5: { type: string, enum: [online,offline] }, last_heartbeat_utc: { type: string,format: date-time } } }
-    StatusEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object, required: [data], properties: { data: { $ref: '#/components/schemas/Status' } } }] }
-    EaState: { type: object, required: [mode,risk_active,session,live_prerequisites], properties: { mode: { type: string, enum: [DEMO,FORWARD,LIVE] }, equity: { type: [number,'null'] }, pnl_today: { type: [number,'null'] }, risk_active: { type: boolean }, risk_reason: { type: [string,'null'] }, session: { type: string }, trend_h1: { type: [string,'null'] }, trend_h4: { type: [string,'null'] }, atr: { type: [number,'null'] }, spread: { type: [number,'null'] }, trades_today: { type: [integer,'null'] }, last_rejection: { type: [string,'null'] }, live_prerequisites: { type: array, items: { type: object, required: [key,ok,reason], properties: { key:{type:string},ok:{type:boolean},reason:{type:string} } } } } }
-    EaStateEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object, required: [data], properties: { data: { $ref: '#/components/schemas/EaState' } } }] }
-    Position: { type: object, required: [id,side,entry,sl,tp,lot,r,status,risk_free], properties: { id:{type:string},side:{type:string,enum:[BUY,SELL]},entry:{type:number},sl:{type:number},tp:{type:number},lot:{type:number},r:{type:number},status:{type:string},risk_free:{type:boolean},time_exit_utc:{type:[string,'null'],format:date-time} } }
-    PositionsEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object, required: [data], properties: { data: { type: array, items: { $ref: '#/components/schemas/Position' } } } }] }
-    Signal: { type: object, required: [id,time_utc,decision,reasons], properties: { id:{type:string},time_utc:{type:string,format:date-time},decision:{type:string,enum:[BUY,SELL,WAIT,NO_SIGNAL]},reasons:{type:array,items:{type:string}},price:{type:[number,'null']} } }
-    SignalsEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object, required: [data], properties: { data: { type: object,required:[items,next_cursor],properties:{items:{type:array,items:{$ref:'#/components/schemas/Signal'}},next_cursor:{type:[string,'null']}} } } }] }
-    Candle: { type: object,required:[time,open,high,low,close],properties:{time:{type:integer},open:{type:number},high:{type:number},low:{type:number},close:{type:number}} }
-    ChartEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object,required:[data],properties:{data:{type:object,required:[candles,overlays],properties:{candles:{type:array,items:{$ref:'#/components/schemas/Candle'}},overlays:{type:array,items:{type:object,additionalProperties:true}}}}} }] }
-    RiskEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object,required:[data],properties:{data:{type:object,additionalProperties:true}} }] }
-    SettingsDraft: { type: object,additionalProperties:true }
-    SettingsData: { type: object,required:[version,values],properties:{version:{type:integer},values:{$ref:'#/components/schemas/SettingsDraft'},pending_next_day:{type:boolean}} }
-    SettingsEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object,required:[data],properties:{data:{$ref:'#/components/schemas/SettingsData'}} }] }
-    DiffItem: { type: object,required:[key,old_value,new_value,apply,risk_level,direction],properties:{key:{type:string},old_value:{},new_value:{},apply:{type:string,enum:[HOT,COLD]},risk_level:{type:string,enum:[LOW,MEDIUM,HIGH]},direction:{type:string,enum:[TIGHTER,LOOSER,NEUTRAL]}} }
-    DiffEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object,required:[data],properties:{data:{type:object,required:[base_version,diff],properties:{base_version:{type:integer},diff:{type:array,items:{$ref:'#/components/schemas/DiffItem'}}}}} }] }
-    ApplyRequest: { type: object,required:[base_version,values],properties:{base_version:{type:integer},values:{$ref:'#/components/schemas/SettingsDraft'}} }
-    Ack: { type: object,required:[request_id,status],properties:{request_id:{type:string},status:{type:string,enum:[PENDING,APPLIED,REJECTED,TIMEOUT]},reason:{type:[string,'null']},version:{type:[integer,'null']}} }
-    AckEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object,required:[data],properties:{data:{$ref:'#/components/schemas/Ack'}} }] }
-    GenericListEnvelope: { allOf: [{ $ref: '#/components/schemas/EnvelopeBase' },{ type: object,required:[data],properties:{data:{type:array,items:{type:object,additionalProperties:true}}} }] }
-    JournalEnvelope: { $ref: '#/components/schemas/GenericListEnvelope' }
-    ValidationEnvelope: { $ref: '#/components/schemas/GenericListEnvelope' }
-    LogsEnvelope: { $ref: '#/components/schemas/GenericListEnvelope' }
-    AuditEnvelope: { $ref: '#/components/schemas/GenericListEnvelope' }
-    ProfilesEnvelope: { $ref: '#/components/schemas/GenericListEnvelope' }
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Aurum Control Python Bridge",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8765/api/v1"
+    }
+  ],
+  "security": [
+    {
+      "session": []
+    }
+  ],
+  "paths": {
+    "/status": {
+      "get": {
+        "operationId": "getStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ea/state": {
+      "get": {
+        "operationId": "getEaState",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EaStateEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/positions": {
+      "get": {
+        "operationId": "getPositions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionsEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/signals": {
+      "get": {
+        "operationId": "getSignals",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignalsEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chart": {
+      "get": {
+        "operationId": "getChart",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChartEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/daily": {
+      "get": {
+        "operationId": "getDailyRisk",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyRiskEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/telemetry": {
+      "get": {
+        "operationId": "getTelemetry",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelemetryEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings": {
+      "get": {
+        "operationId": "getSettingsData",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsDataEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/journal": {
+      "get": {
+        "operationId": "getJournal",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/validation": {
+      "get": {
+        "operationId": "getValidation",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logs": {
+      "get": {
+        "operationId": "getLogs",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogsEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit": {
+      "get": {
+        "operationId": "getAudit",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/requests/{id}": {
+      "get": {
+        "operationId": "getAck",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AckEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings/validate": {
+      "post": {
+        "operationId": "settingsvalidate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiffEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings/apply": {
+      "post": {
+        "operationId": "settingsapply",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AckEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/commands/{command}": {
+      "post": {
+        "operationId": "commandscommand",
+        "parameters": [
+          {
+            "name": "command",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "kill-switch",
+                "risk-free-all",
+                "risk-free-position",
+                "close-position"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AckEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit/{id}/rollback": {
+      "post": {
+        "operationId": "auditidrollback",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiffEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See Error.code; request was not applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "session": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "VALIDATION_ERROR",
+              "VERSION_CONFLICT",
+              "MT5_ONLY",
+              "LIVE_LOCKED",
+              "EA_OFFLINE",
+              "UNAUTHORIZED",
+              "NOT_FOUND",
+              "IDEMPOTENCY_CONFLICT",
+              "UNAVAILABLE"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "field": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "HealthNode": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "stale",
+              "offline"
+            ]
+          },
+          "heartbeat_utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latency_ms": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "state",
+          "heartbeat_utc",
+          "latency_ms"
+        ]
+      },
+      "Status": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "backend": {
+            "$ref": "#/components/schemas/HealthNode"
+          },
+          "ea": {
+            "$ref": "#/components/schemas/HealthNode"
+          },
+          "mt5": {
+            "$ref": "#/components/schemas/HealthNode"
+          },
+          "broker_offset_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "backend",
+          "ea",
+          "mt5",
+          "broker_offset_minutes"
+        ]
+      },
+      "EaState": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "SIGNAL_ONLY",
+              "PAPER",
+              "LIVE"
+            ]
+          },
+          "equity": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "pnl_today": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "risk_active": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "risk_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "session": {
+            "type": "string"
+          },
+          "trend_h1": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trend_h4": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "h1_strength": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "h4_strength": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "atr": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "spread": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "trades_today": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "last_rejection": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "live_prerequisites": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "ok": {
+                  "type": "boolean"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "key",
+                "ok",
+                "reason"
+              ]
+            }
+          }
+        },
+        "required": [
+          "mode",
+          "equity",
+          "pnl_today",
+          "risk_active",
+          "risk_reason",
+          "session",
+          "trend_h1",
+          "trend_h4",
+          "h1_strength",
+          "h4_strength",
+          "atr",
+          "spread",
+          "trades_today",
+          "last_rejection",
+          "live_prerequisites"
+        ]
+      },
+      "Position": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "BUY",
+              "SELL"
+            ]
+          },
+          "entry": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "sl": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "tp": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "lot": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "r": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "risk_free": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "time_exit_utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "side",
+          "entry",
+          "sl",
+          "tp",
+          "lot",
+          "r",
+          "status",
+          "risk_free",
+          "time_exit_utc"
+        ]
+      },
+      "Signal": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "BUY",
+              "SELL",
+              "WAIT",
+              "NO_SIGNAL"
+            ]
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "price": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "reason_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "actual": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "limit": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "time_utc",
+          "decision",
+          "reasons",
+          "price",
+          "reason_code",
+          "actual",
+          "limit"
+        ]
+      },
+      "Candle": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "time": {
+            "type": "integer"
+          },
+          "open": {
+            "type": "number"
+          },
+          "high": {
+            "type": "number"
+          },
+          "low": {
+            "type": "number"
+          },
+          "close": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "time",
+          "open",
+          "high",
+          "low",
+          "close"
+        ]
+      },
+      "Chart": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "candles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Candle"
+            }
+          },
+          "overlays": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "price": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "label",
+                "price"
+              ]
+            }
+          }
+        },
+        "required": [
+          "candles",
+          "overlays"
+        ]
+      },
+      "DailyRisk": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "STOPPED"
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start_equity": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "current_equity": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "loss_limit_amount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "loss_remaining": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "loss_remaining_percent": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "profit_target_amount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "profit_remaining": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "profit_remaining_percent": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "trades_remaining": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "next_day_utc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "state",
+          "reason",
+          "start_equity",
+          "current_equity",
+          "loss_limit_amount",
+          "loss_remaining",
+          "loss_remaining_percent",
+          "profit_target_amount",
+          "profit_remaining",
+          "profit_remaining_percent",
+          "trades_remaining",
+          "next_day_utc"
+        ]
+      },
+      "Telemetry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "equity": {
+            "type": "array",
+            "items": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "spread": {
+            "type": "array",
+            "items": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "atr": {
+            "type": "array",
+            "items": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
+        },
+        "required": [
+          "equity",
+          "spread",
+          "atr"
+        ]
+      },
+      "SettingsDraft": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "executionMode": {
+            "type": "string",
+            "enum": [
+              "SIGNAL_ONLY",
+              "PAPER",
+              "LIVE"
+            ]
+          },
+          "riskPerTrade": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 2,
+            "multipleOf": 0.1
+          },
+          "dailyLossLimit": {
+            "type": "number",
+            "minimum": 0.5,
+            "maximum": 5,
+            "multipleOf": 0.1
+          },
+          "maxSpread": {
+            "type": "number",
+            "minimum": 5,
+            "maximum": 100,
+            "multipleOf": 1
+          },
+          "allowRemoteConfig": {
+            "type": "boolean"
+          },
+          "allowRealAccount": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "executionMode",
+          "riskPerTrade",
+          "dailyLossLimit",
+          "maxSpread",
+          "allowRemoteConfig",
+          "allowRealAccount"
+        ]
+      },
+      "SettingsData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer"
+          },
+          "values": {
+            "$ref": "#/components/schemas/SettingsDraft"
+          },
+          "pending_next_day": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "version",
+          "values",
+          "pending_next_day"
+        ]
+      },
+      "DiffItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "old_value": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          },
+          "new_value": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          },
+          "apply": {
+            "type": "string",
+            "enum": [
+              "HOT",
+              "COLD"
+            ]
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ]
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "TIGHTER",
+              "LOOSER",
+              "NEUTRAL"
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "old_value",
+          "new_value",
+          "apply",
+          "risk_level",
+          "direction"
+        ]
+      },
+      "Diff": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "base_version": {
+            "type": "integer"
+          },
+          "diff": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiffItem"
+            }
+          },
+          "values": {
+            "$ref": "#/components/schemas/SettingsDraft"
+          }
+        },
+        "required": [
+          "base_version",
+          "diff",
+          "values"
+        ]
+      },
+      "ApplyRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "base_version": {
+            "type": "integer"
+          },
+          "values": {
+            "$ref": "#/components/schemas/SettingsDraft"
+          }
+        },
+        "required": [
+          "base_version",
+          "values"
+        ]
+      },
+      "Ack": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPLIED",
+              "REJECTED",
+              "TIMEOUT"
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "ea_ack_utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "status",
+          "reason",
+          "version",
+          "ea_ack_utc"
+        ]
+      },
+      "CommandRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "position_id": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "JournalRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "BUY",
+              "SELL"
+            ]
+          },
+          "r": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "session": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "time_utc",
+          "side",
+          "r",
+          "session",
+          "result"
+        ]
+      },
+      "ValidationRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "test": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PASS",
+              "REVIEW",
+              "FAIL"
+            ]
+          },
+          "period": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "test",
+          "status",
+          "period",
+          "evidence"
+        ]
+      },
+      "LogRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "INFO",
+              "WARN",
+              "ERROR"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "time_utc",
+          "level",
+          "source",
+          "message"
+        ]
+      },
+      "AuditRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "result": {
+            "type": "string"
+          },
+          "previous_values": {
+            "$ref": "#/components/schemas/SettingsDraft"
+          }
+        },
+        "required": [
+          "id",
+          "time_utc",
+          "actor",
+          "action",
+          "version",
+          "result",
+          "previous_values"
+        ]
+      },
+      "Signals": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Signal"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      },
+      "Journal": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JournalRecord"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      },
+      "Validation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationRecord"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      },
+      "Logs": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogRecord"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      },
+      "Audit": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditRecord"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      },
+      "Positions": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Position"
+        }
+      },
+      "StatusEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "EaStateEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/EaState"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "PositionEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Position"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "SignalEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Signal"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "CandleEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Candle"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "ChartEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Chart"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "DailyRiskEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DailyRisk"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "TelemetryEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Telemetry"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "SettingsDataEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SettingsData"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "DiffItemEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DiffItem"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "DiffEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Diff"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "AckEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Ack"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "JournalRecordEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/JournalRecord"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "ValidationRecordEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ValidationRecord"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "LogRecordEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LogRecord"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "AuditRecordEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AuditRecord"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "SignalsEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Signals"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "JournalEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Journal"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "ValidationEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Validation"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "LogsEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Logs"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "AuditEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Audit"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "PositionsEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Positions"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "data",
+          "error",
+          "server_time_utc",
+          "api_version"
+        ]
+      }
+    }
+  }
+}

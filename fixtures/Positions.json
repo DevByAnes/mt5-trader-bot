@@ -1,0 +1,19 @@
+{
+  "data": [
+    {
+      "id": "XAU-1042",
+      "side": "BUY",
+      "entry": 2688.4,
+      "sl": 2679.1,
+      "tp": 2707,
+      "lot": 0.12,
+      "r": 0.74,
+      "status": "OPEN",
+      "risk_free": false,
+      "time_exit_utc": null
+    }
+  ],
+  "error": null,
+  "server_time_utc": "2026-11-02T10:00:00Z",
+  "api_version": "1.0.0"
+}

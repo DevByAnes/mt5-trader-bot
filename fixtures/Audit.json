@@ -1,0 +1,26 @@
+{
+  "data": {
+    "items": [
+      {
+        "id": "audit-7",
+        "time_utc": "2026-11-02T10:00:00Z",
+        "actor": "mock-operator",
+        "action": "SETTINGS_APPLIED",
+        "version": 7,
+        "result": "APPLIED",
+        "previous_values": {
+          "executionMode": "PAPER",
+          "riskPerTrade": 0.5,
+          "dailyLossLimit": 2,
+          "maxSpread": 30,
+          "allowRemoteConfig": true,
+          "allowRealAccount": false
+        }
+      }
+    ],
+    "next_cursor": null
+  },
+  "error": null,
+  "server_time_utc": "2026-11-02T10:00:00Z",
+  "api_version": "1.0.0"
+}
