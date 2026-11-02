@@ -1,0 +1,5 @@
+{
+  "PENDING": {"request_id": "simulated-request", "status": "PENDING", "reason": null, "version": null, "ea_ack_utc": null},
+  "REJECTED": {"request_id": "simulated-request", "status": "REJECTED", "reason": "SIMULATED_EA_REJECTION", "version": null, "ea_ack_utc": null},
+  "TIMEOUT": {"request_id": "simulated-request", "status": "TIMEOUT", "reason": "SIMULATED_OUTCOME_UNKNOWN", "version": null, "ea_ack_utc": null}
+}

@@ -1,0 +1,33 @@
+B1 local verification — Windows / Python 3.14.10 / 2026-11-02
+$ uv run python -m ruff check
+All checks passed!
+exit=0
+
+$ uv run python -m mypy
+Success: no issues found in 50 source files
+exit=0
+
+$ uv run python -m tools.gen_models --check
+Generated models match frozen schemas
+exit=0
+
+$ uv run python -m pytest -q
+........................................................................ [ 62%]
+............................................                             [100%]
+116 passed in 12.34s
+exit=0
+
+$ uv run python -m tools.no_orders
+No execution symbols in src
+exit=0
+
+$ uv run python -m tools.guard_demo
+bad.py:1: execution symbol
+bad.py:1: execution identifier
+Deliberately bad sample exit code: 1 (expected 1)
+exit=0
+
+$ uv run python -m tools.smoke
+CLI smoke PASS (environment token): 127.0.0.1:8765 HTTP=200, missing token=401, WS heartbeat seq=1
+CLI smoke PASS (stdin token): 127.0.0.1:8765 HTTP=200, missing token=401, WS heartbeat seq=1
+exit=0

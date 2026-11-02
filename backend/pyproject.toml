@@ -1,0 +1,66 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aurum-backend"
+version = "0.1.0"
+description = "B1 local contract fixture server; no trading execution"
+requires-python = ">=3.12,<3.16"
+dependencies = [
+  "fastapi==0.162.0",
+  "pydantic==2.14.2",
+  "uvicorn==0.54.0",
+  "websockets>=15,<17",
+  "jsonschema>=4.26,<5",
+  "referencing>=0.37,<0.40",
+  "anyio>=4.16.0",
+]
+
+[project.scripts]
+aurum-backend = "aurum_backend.main:run"
+aurum-lint = "tools.lint:main"
+
+[dependency-groups]
+dev = [
+  "datamodel-code-generator==0.87.0",
+  "ruff==0.17.3",
+  "mypy==2.4.1",
+  "pytest==9.2.0",
+  "hypothesis==6.170.14",
+  "schemathesis==4.33.0",
+  "httpx>=0.28,<1",
+  "types-jsonschema>=4.26",
+  "httpx2>=2.16.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aurum_backend", "tools"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+"src/aurum_backend/models/generated*.py" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["aurum_backend", "tools"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["src", "tools", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = ["error", "ignore:.*jsonschema.RefResolver.*:DeprecationWarning"]
+
+[tool.uv]
+required-version = ">=0.13.6"

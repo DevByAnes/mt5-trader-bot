@@ -8,3 +8,13 @@ src-tauri/gen/
 .env*
 !.env.example
 *.tsbuildinfo
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.schemathesis/
+backend/.evidence/
+backend/*.egg-info/

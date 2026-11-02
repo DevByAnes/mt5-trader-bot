@@ -1,0 +1,1 @@
+"""Bounded local event delivery."""
