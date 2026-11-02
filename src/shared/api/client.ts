@@ -1,34 +1,72 @@
 import type { components, paths } from './generated';
-export type Models=components['schemas'];
-export type ApiError=Models['Error'];
-export type Status=Models['Status'];
-export type EaState=Models['EaState'];
-export type Position=Models['Position'];
-export type Signal=Models['Signal'];
-export type DiffItem=Models['DiffItem'];
-export type Ack=Models['Ack'];
-export type SettingsValues=Models['SettingsDraft'];
-export type Command=paths['/commands/{command}']['post']['parameters']['path']['command'];
-type GetPath={ [P in keyof paths]: paths[P] extends {get:{responses:{200:unknown}}}?P:never }[keyof paths];
-type GetData<P extends GetPath>=paths[P] extends {get:{responses:{200:{content:{'application/json':{data:infer D}}}}}}?D:never;
-const base=import.meta.env.VITE_API_URL??'http://127.0.0.1:8765/api/v1';
-let sessionToken:string|undefined;
-export function setSessionToken(value:string){sessionToken=value;}
-export class ApiClientError extends Error{constructor(public readonly status:number,public readonly detail:ApiError|null){super(detail?.message??`HTTP ${status}`);}}
-async function request<T>(path:string,init?:RequestInit):Promise<T>{
- const headers=new Headers(init?.headers);headers.set('Accept','application/json');if(init?.body)headers.set('Content-Type','application/json');if(sessionToken)headers.set('Authorization',`Bearer ${sessionToken}`);
- const response=await fetch(base+path,{...init,headers,signal:AbortSignal.timeout(5000)});const body=await response.json();
- if(!response.ok||body.error)throw new ApiClientError(response.status,body.error);
- if(body.api_version!=='1.0.0'||body.data===undefined)throw Error('Unsupported bridge response');return body.data as T;
+export type Models = components['schemas'];
+export type ApiError = Models['Error'];
+export type Status = Models['Status'];
+export type EaState = Models['EaState'];
+export type Position = Models['Position'];
+export type Signal = Models['Signal'];
+export type DiffItem = Models['DiffItem'];
+export type Ack = Models['Ack'];
+export type SettingsValues = Models['SettingsDraft'];
+export type Command = paths['/commands/{command}']['post']['parameters']['path']['command'];
+type GetPath = {
+    [P in keyof paths]: paths[P] extends {
+        get: {
+            responses: {
+                200: unknown;
+            };
+        };
+    } ? P : never;
+}[keyof paths];
+type GetData<P extends GetPath> = paths[P] extends {
+    get: {
+        responses: {
+            200: {
+                content: {
+                    'application/json': {
+                        data: infer D;
+                    };
+                };
+            };
+        };
+    };
+} ? D : never;
+const base = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8765/api/v1';
+let sessionToken: string | undefined;
+export function setSessionToken(value: string) { sessionToken = value; }
+export class ApiClientError extends Error {
+    constructor(public readonly status: number, public readonly detail: ApiError | null) { super(detail?.message ?? `HTTP ${status}`); }
 }
-const get=<P extends GetPath>(path:P)=>request<GetData<P>>(path);
-const post=<T>(path:string,body:unknown,key?:string)=>request<T>(path,{method:'POST',body:JSON.stringify(body),...(key?{headers:{'Idempotency-Key':key}}:{})});
-export const api={status:()=>get('/status'),eaState:()=>get('/ea/state'),positions:()=>get('/positions'),signals:()=>get('/signals'),chart:()=>get('/chart'),risk:()=>get('/risk/daily'),telemetry:()=>get('/telemetry'),settings:()=>get('/settings'),
- validateSettings:(body:Models['ApplyRequest'])=>post<Models['Diff']>('/settings/validate',body),
- applySettings:(base_version:number,values:SettingsValues,key=crypto.randomUUID())=>post<Ack>('/settings/apply',{base_version,values},key),
- command:(command:Command,positionId?:string,key=crypto.randomUUID())=>post<Ack>('/commands/'+command,positionId?{position_id:positionId}:{},key),
- ack:(id:string)=>request<Ack>('/requests/'+encodeURIComponent(id)),rollback:(id:string)=>post<Models['Diff']>('/audit/'+encodeURIComponent(id)+'/rollback',{}),
- journal:()=>get('/journal'),validation:()=>get('/validation'),logs:()=>get('/logs'),audit:()=>get('/audit'),
- page:<P extends '/journal'|'/validation'|'/logs'|'/audit'|'/signals'>(path:P,cursor:string)=>request<GetData<P>>(path+'?cursor='+encodeURIComponent(cursor))};
-export async function awaitAck(initial:Ack,onPending?:()=>void):Promise<Ack>{if(initial.status!=='PENDING')return verified(initial);onPending?.();const deadline=Date.now()+10000;while(Date.now()<deadline){await new Promise(r=>setTimeout(r,300));const ack=await api.ack(initial.request_id);if(ack.status!=='PENDING')return verified(ack);}return {...initial,status:'TIMEOUT',reason:'Outcome unknown; reconcile request ID before retrying'};}
-function verified(ack:Ack):Ack{if(ack.status==='APPLIED'&&!ack.ea_ack_utc)throw Error('APPLIED has no EA acknowledgement');return ack;}
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+    const headers = new Headers(init?.headers);
+    headers.set('Accept', 'application/json');
+    if (init?.body)
+        headers.set('Content-Type', 'application/json');
+    if (sessionToken)
+        headers.set('Authorization', `Bearer ${sessionToken}`);
+    const response = await fetch(base + path, { ...init, headers, signal: AbortSignal.timeout(5000) });
+    const body = await response.json();
+    if (!response.ok || body.error)
+        throw new ApiClientError(response.status, body.error);
+    if (body.api_version !== '1.0.0' || body.data === undefined)
+        throw Error('Unsupported bridge response');
+    return body.data as T;
+}
+const get = <P extends GetPath>(path: P) => request<GetData<P>>(path);
+const post = <T>(path: string, body: unknown, key?: string) => request<T>(path, { method: 'POST', body: JSON.stringify(body), ...(key ? { headers: { 'Idempotency-Key': key } } : {}) });
+export const api = { status: () => get('/status'), eaState: () => get('/ea/state'), positions: () => get('/positions'), signals: () => get('/signals'), chart: () => get('/chart'), risk: () => get('/risk/daily'), telemetry: () => get('/telemetry'), settings: () => get('/settings'),
+    validateSettings: (body: Models['ApplyRequest']) => post<Models['Diff']>('/settings/validate', body),
+    applySettings: (base_version: number, values: SettingsValues, key: string = crypto.randomUUID()) => post<Ack>('/settings/apply', { base_version, values }, key),
+    command: (command: Command, positionId?: string, key: string = crypto.randomUUID()) => post<Ack>('/commands/' + command, positionId ? { position_id: positionId } : {}, key),
+    ack: (id: string) => request<Ack>('/requests/' + encodeURIComponent(id)), rollback: (id: string) => post<Models['Diff']>('/audit/' + encodeURIComponent(id) + '/rollback', {}),
+    journal: () => get('/journal'), validation: () => get('/validation'), logs: () => get('/logs'), audit: () => get('/audit'),
+    page: <P extends '/journal' | '/validation' | '/logs' | '/audit' | '/signals'>(path: P, cursor: string) => request<GetData<P>>(path + '?cursor=' + encodeURIComponent(cursor)) };
+export async function awaitAck(initial: Ack, onPending?: () => void): Promise<Ack> { if (initial.status !== 'PENDING')
+    return verified(initial); onPending?.(); const deadline = Date.now() + 10000; while (Date.now() < deadline) {
+    await new Promise(r => setTimeout(r, 300));
+    const ack = await api.ack(initial.request_id);
+    if (ack.status !== 'PENDING')
+        return verified(ack);
+} return { ...initial, status: 'TIMEOUT', reason: 'Outcome unknown; reconcile request ID before retrying' }; }
+function verified(ack: Ack): Ack { if (ack.status === 'APPLIED' && !ack.ea_ack_utc)
+    throw Error('APPLIED has no EA acknowledgement'); return ack; }

@@ -1171,7 +1171,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Accepted request_id, or original Idempotency-Key when the HTTP acceptance response was lost. Same retention and operator scope."
           }
         ],
         "responses": {
@@ -2621,11 +2622,32 @@
               "string",
               "null"
             ]
+          },
+          "rejection_counts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "code",
+                "count"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           }
         },
         "required": [
           "items",
-          "next_cursor"
+          "next_cursor",
+          "rejection_counts"
         ]
       },
       "Journal": {

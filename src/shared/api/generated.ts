@@ -465,6 +465,10 @@ export interface components {
         Signals: {
             items: components["schemas"]["Signal"][];
             next_cursor: string | null;
+            rejection_counts: {
+                code: string;
+                count: number;
+            }[];
         };
         Journal: {
             items: components["schemas"]["JournalRecord"][];
@@ -1694,6 +1698,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Accepted request_id, or original Idempotency-Key when the HTTP acceptance response was lost. Same retention and operator scope. */
                 id: string;
             };
             cookie?: never;

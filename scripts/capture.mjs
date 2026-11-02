@@ -7,7 +7,7 @@ await mkdir(`docs/screenshots/${phase}`, { recursive: true });
 for (const scenario of ['normal', 'python-offline', 'stale']) {
   for (const route of ['overview', 'settings', 'positions', 'chart', 'risk', 'journal', 'validation', 'logs', 'audit']) {
     await page.goto(`http://127.0.0.1:1420/${route}?scenario=${scenario}`);
-    await page.waitForTimeout(1300);
+    await page.waitForTimeout(scenario === 'normal' ? 1300 : 2500);
     if (phase === 'before' && scenario === 'python-offline') {
       await page.context().setOffline(true);
       await page.reload().catch(() => {});

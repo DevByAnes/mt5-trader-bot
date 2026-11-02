@@ -1,30 +1,104 @@
-import { useReducer,useState } from 'react';
-import { useQuery,useQueryClient } from '@tanstack/react-query';
+import { copy } from '../../shared/copy';
+import { useReducer, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { api,awaitAck,type Models,type SettingsValues,type Ack } from '../../shared/api/client';
+import { api, awaitAck, ApiClientError, type Models, type SettingsValues, type Ack } from '../../shared/api/client';
 import schema from '../../../schema/settings.schema.json';
-import { Badge,Card,PageState } from '../../shared/ui';
+import { Badge, Card, PageState } from '../../shared/ui';
 import { settingsReducer } from './machine';
 import { validateValues } from './validation';
 import { useUiStore } from '../../shared/store';
-export function SettingsPage(){const q=useQuery({queryKey:['settings'],queryFn:api.settings});return <PageState loading={q.isLoading} error={q.error}>{q.data&&<SettingsEditor initial={q.data}/>}</PageState>;}
-function SettingsEditor({initial}:{initial:Models['SettingsData']}){
- const {t}=useTranslation();const qc=useQueryClient();const online=useUiStore(s=>s.backendOnline);
- const current=useQuery({queryKey:['settings'],queryFn:api.settings});const ea=useQuery({queryKey:['ea-state'],queryFn:api.eaState});
- const [phase,dispatch]=useReducer(settingsReducer,'CLEAN');const [draft,setDraft]=useState<SettingsValues>(structuredClone(initial.values));const [review,setReview]=useState<Models['Diff']>();const [phrase,setPhrase]=useState('');const [error,setError]=useState('');const [ack,setAck]=useState<Ack>();const [baseVersion,setBaseVersion]=useState(initial.version);
- const frozen=['VALIDATING','CONFIRMING_LOOSEN','REVIEWING_DIFF','SUBMITTING','AWAITING_ACK','TIMEOUT'].includes(phase);
- function edit(key:string,value:unknown){if(!draft)return;setDraft({...draft,[key]:value});setReview(undefined);setPhrase('');setError('');dispatch({type:'EDIT'});}
- async function validate(){if(!draft)return;const invalid=validateValues(draft);if(invalid.length){setError('Invalid settings: '+invalid.join(', '));return;}dispatch({type:'VALIDATE'});setError('');try{const r=await api.validateSettings({base_version:baseVersion,values:structuredClone(draft)});setReview(r);setPhrase('');dispatch({type:'VALIDATED',hasLooser:r.diff.some(d=>d.direction==='LOOSER')});}catch(e){setError(String(e));dispatch({type:'FAIL'});}}
- async function apply(){if(!review||!online)return;dispatch({type:'SUBMIT'});setError('');try{const pending=await api.applySettings(review.base_version,review.values);setAck(pending);dispatch({type:'SENT'});const result=await awaitAck(pending);setAck(result);dispatch(result.status==='APPLIED'||result.status==='REJECTED'?{type:'ACK',status:result.status}:{type:'TIMEOUT'});if(result.status==='APPLIED')await qc.invalidateQueries();}catch(e){setError(String(e));dispatch({type:'TIMEOUT'});}}
- async function reconcile(){if(!ack)return;try{const result=await awaitAck(await api.ack(ack.request_id));setAck(result);if(result.status==='APPLIED'||result.status==='REJECTED')dispatch({type:'ACK',status:result.status});}catch(e){setError(String(e));}}
- function reset(){if(current.data){setDraft(structuredClone(current.data.values));setBaseVersion(current.data.version);}setReview(undefined);setAck(undefined);setError('');setPhrase('');dispatch({type:'RESET'});}
- async function rollback(){setError('');try{const rows=await api.audit();const row=rows.items[0];if(!row)throw Error('No rollback snapshot available');const r=await api.rollback(row.id);setDraft(r.values);setBaseVersion(r.base_version);dispatch({type:'EDIT'});setReview(undefined);}catch(e){setError(String(e));}}
- return <><div className="page-head"><div><span className="eyebrow">EA configuration · v{baseVersion||'—'}</span><h1>{t('nav.settings')}</h1><p role="status">Workflow: <b>{phase}</b></p></div><button onClick={rollback} disabled={frozen||!online}>{t('rollback')}</button></div>
- <PageState loading={current.isLoading} error={current.error}>{draft&&<form onSubmit={e=>{e.preventDefault();if(phase==='DIRTY')void validate();else if(phase==='REVIEWING_DIFF')void apply();}}>
- <div className="settings-form">{Object.entries(schema.properties).map(([name,m])=>{const key=name as keyof SettingsValues;return <Card key={name}><label><div className="field-head"><span>{t(m.label_i18n)}</span><Badge kind={m.mt5_only?'neutral':'warn'}>{m.mt5_only?'MT5 LOCK':`${m.risk_level} · ${m.apply}`}</Badge></div>{m.enum?<select name={name} value={String(draft[key])} disabled={m.mt5_only||frozen} onChange={e=>edit(key,e.target.value)}>{m.enum.map(v=><option value={v} key={v} disabled={v==='LIVE'&&(!ea.data||ea.data.live_prerequisites.some(p=>!p.ok))}>{v}</option>)}</select>:m.type==='boolean'?<input name={name} type="checkbox" checked={Boolean(draft[key])} disabled={m.mt5_only||frozen} onChange={e=>edit(key,e.target.checked)}/>:<input name={name} type="number" value={String(draft[key])} min={m.min??undefined} max={m.max??undefined} step={m.step??undefined} readOnly={m.mt5_only||frozen} onChange={e=>edit(key,e.target.valueAsNumber)}/>}<small>{t(m.help_i18n)}</small></label></Card>;})}</div>
- {review&&<Card title="Change review"><table><thead><tr><th>Parameter</th><th>Previous</th><th>Proposed</th><th>Apply</th><th>Direction</th></tr></thead><tbody>{review.diff.map(d=><tr key={d.key}><td>{t(schema.properties[d.key as keyof SettingsValues].label_i18n)}</td><td>{String(d.old_value)}</td><td>{String(d.new_value)}</td><td>{d.apply}</td><td>{d.direction}</td></tr>)}</tbody></table>{!review.diff.length&&<p>No changes. Discard draft to continue.</p>}</Card>}
- {phase==='CONFIRMING_LOOSEN'&&<Card title="Additional confirmation required"><p>Risk constraints will be loosened. COLD changes require EA approval and the next trading-day boundary.</p><label>Type LOOSEN RISK<input aria-label="Risk confirmation" value={phrase} onChange={e=>setPhrase(e.target.value)}/></label><button type="button" disabled={phrase!=='LOOSEN RISK'} onClick={()=>dispatch({type:'CONFIRM'})}>{t('loosen')}</button></Card>}
- <div className="sticky-save"><button type="submit" disabled={!online||!(phase==='DIRTY'||phase==='REVIEWING_DIFF'&&Boolean(review?.diff.length))}>{phase==='DIRTY'?t('review'):phase==='REVIEWING_DIFF'?t('apply'):'No pending changes'}</button><button type="button" disabled={['SUBMITTING','AWAITING_ACK','TIMEOUT'].includes(phase)} onClick={reset}>{t('reset')}</button>{phase==='TIMEOUT'&&<button type="button" onClick={reconcile} disabled={!online||!ack}>Reconcile request</button>}<span role="status">{phase==='APPLIED'?'EA acknowledged · '+(ack?.ea_ack_utc??''):phase==='TIMEOUT'?'Outcome unknown. Do not resubmit.':phase==='REJECTED'?`Rejected: ${ack?.reason}`:ack?.request_id}</span></div>
- {error&&<p role="alert" className="error">{error}</p>}
+export function SettingsPage() { const q = useQuery({ queryKey: ['settings'], queryFn: api.settings }); return <PageState loading={q.isLoading} error={q.error}>{q.data && <SettingsEditor initial={q.data}/>}</PageState>; }
+function SettingsEditor({ initial }: {
+    initial: Models['SettingsData'];
+}) {
+    const { t } = useTranslation();
+    const qc = useQueryClient();
+    const online = useUiStore(s => s.backendOnline);
+    const current = useQuery({ queryKey: ['settings'], queryFn: api.settings });
+    const ea = useQuery({ queryKey: ['ea-state'], queryFn: api.eaState });
+    const requestKey = useRef(crypto.randomUUID());
+    const [phase, dispatch] = useReducer(settingsReducer, 'CLEAN');
+    const [draft, setDraft] = useState<SettingsValues>(structuredClone(initial.values));
+    const [review, setReview] = useState<Models['Diff']>();
+    const [phrase, setPhrase] = useState('');
+    const [error, setError] = useState('');
+    const [ack, setAck] = useState<Ack>();
+    const [baseVersion, setBaseVersion] = useState(initial.version);
+    const frozen = ['VALIDATING', 'CONFIRMING_LOOSEN', 'REVIEWING_DIFF', 'SUBMITTING', 'AWAITING_ACK', 'TIMEOUT'].includes(phase);
+    function edit(key: string, value: unknown) { if (!draft)
+        return; setDraft({ ...draft, [key]: value }); setReview(undefined); setPhrase(''); setError(''); dispatch({ type: 'EDIT' }); }
+    async function validate() { if (!draft)
+        return; const invalid = validateValues(draft); if (invalid.length) {
+        setError('Invalid settings: ' + invalid.join(', '));
+        return;
+    } dispatch({ type: 'VALIDATE' }); setError(''); try {
+        const r = await api.validateSettings({ base_version: baseVersion, values: structuredClone(draft) });
+        setReview(r);
+        setPhrase('');
+        dispatch({ type: 'VALIDATED', hasLooser: r.diff.some(d => d.direction === 'LOOSER') });
+    }
+    catch (e) {
+        setError(String(e));
+        dispatch({ type: 'FAIL' });
+    } }
+    async function apply() { if (!review || !online)
+        return; dispatch({ type: 'SUBMIT' }); setError(''); const key = requestKey.current; setAck({ request_id: key, status: 'PENDING', reason: null, version: null, ea_ack_utc: null }); try {
+        const pending = await api.applySettings(review.base_version, review.values, key);
+        setAck(pending);
+        dispatch({ type: 'SENT' });
+        const result = await awaitAck(pending);
+        setAck(result);
+        dispatch(result.status === 'APPLIED' || result.status === 'REJECTED' ? { type: 'ACK', status: result.status } : { type: 'TIMEOUT' });
+        if (result.status === 'APPLIED')
+            await qc.invalidateQueries();
+    }
+    catch (e) {
+        setError(String(e));
+        if (e instanceof ApiClientError && [400, 403, 409, 422, 503].includes(e.status)) {
+            dispatch({ type: 'FAIL' });
+            setAck(undefined);
+        }
+        else
+            dispatch({ type: 'TIMEOUT' });
+    } }
+    async function reconcile() { if (!ack)
+        return; try {
+        const result = await awaitAck(await api.ack(ack.request_id));
+        setAck(result);
+        if (result.status === 'APPLIED' || result.status === 'REJECTED')
+            dispatch({ type: 'ACK', status: result.status });
+    }
+    catch (e) {
+        setError(String(e));
+    } }
+    function reset() { requestKey.current = crypto.randomUUID(); if (current.data) {
+        setDraft(structuredClone(current.data.values));
+        setBaseVersion(current.data.version);
+    } setReview(undefined); setAck(undefined); setError(''); setPhrase(''); dispatch({ type: 'RESET' }); }
+    async function rollback() { setError(''); try {
+        const rows = await api.audit();
+        const row = rows.items[0];
+        if (!row)
+            throw Error('No rollback snapshot available');
+        const r = await api.rollback(row.id);
+        setDraft(r.values);
+        setBaseVersion(r.base_version);
+        dispatch({ type: 'EDIT' });
+        setReview(undefined);
+    }
+    catch (e) {
+        setError(String(e));
+    } }
+    return <><div className="page-head"><div><span className="eyebrow">{copy("EA configuration · v")}{baseVersion || '—'}</span><h1>{t('nav.settings')}</h1><p role="status">{copy("Workflow:")}<b>{phase}</b></p></div><button onClick={rollback} disabled={frozen || !online}>{t('rollback')}</button></div>
+ <PageState loading={current.isLoading} error={current.error}>{draft && <form onSubmit={e => { e.preventDefault(); if (phase === 'DIRTY')
+            void validate();
+        else if (phase === 'REVIEWING_DIFF')
+            void apply(); }}>
+ <div className="settings-form">{Object.entries(schema.properties).map(([name, m]) => { const key = name as keyof SettingsValues; return <Card key={name}><label><div className="field-head"><span>{t(m.label_i18n)}</span><Badge kind={m.mt5_only ? 'neutral' : 'warn'}>{m.mt5_only ? 'MT5 LOCK' : `${m.risk_level} · ${m.apply}`}</Badge></div>{m.type === 'string' && m.enum ? <select name={name} value={String(draft[key])} disabled={m.mt5_only || frozen} onChange={e => edit(key, e.target.value)}>{(m.enum as string[]).map(v => <option value={v} key={v} disabled={v === 'LIVE' && (!ea.data || ea.data.live_prerequisites.some(p => !p.ok))}>{v}</option>)}</select> : m.type === 'boolean' ? <input name={name} type="checkbox" checked={Boolean(draft[key])} disabled={m.mt5_only || frozen} onChange={e => edit(key, e.target.checked)}/> : <input name={name} type="number" value={String(draft[key])} min={m.min ?? undefined} max={m.max ?? undefined} step={m.step ?? undefined} readOnly={m.mt5_only || frozen} onChange={e => edit(key, e.target.valueAsNumber)}/>}<small>{t(m.help_i18n)}</small></label></Card>; })}</div>
+ {review && <Card title={copy("Change review")}><table><thead><tr><th>{copy("Parameter")}</th><th>{copy("Previous")}</th><th>{copy("Proposed")}</th><th>{copy("Apply")}</th><th>{copy("Direction")}</th></tr></thead><tbody>{review.diff.map(d => <tr key={d.key}><td>{t(schema.properties[d.key as keyof SettingsValues].label_i18n)}</td><td>{String(d.old_value)}</td><td>{String(d.new_value)}</td><td>{d.apply}</td><td>{d.direction}</td></tr>)}</tbody></table>{!review.diff.length && <p>{copy("No changes. Discard draft to continue.")}</p>}</Card>}
+ {phase === 'CONFIRMING_LOOSEN' && <Card title={copy("Additional confirmation required")}><p>{copy("Risk constraints will be loosened. COLD changes require EA approval and the next trading-day boundary.")}</p><label>{copy("Type LOOSEN RISK")}<input aria-label={copy("Risk confirmation")} value={phrase} onChange={e => setPhrase(e.target.value)}/></label><button type="button" disabled={phrase !== 'LOOSEN RISK'} onClick={() => dispatch({ type: 'CONFIRM' })}>{t('loosen')}</button></Card>}
+ <div className="sticky-save"><button type="submit" disabled={!online || !(phase === 'DIRTY' || phase === 'REVIEWING_DIFF' && Boolean(review?.diff.length))}>{phase === 'DIRTY' ? t('review') : phase === 'REVIEWING_DIFF' ? t('apply') : copy('No pending changes')}</button><button type="button" disabled={['SUBMITTING', 'AWAITING_ACK', 'TIMEOUT'].includes(phase)} onClick={reset}>{t('reset')}</button>{phase === 'TIMEOUT' && <button type="button" onClick={reconcile} disabled={!online || !ack}>{copy("Reconcile request")}</button>}<span role="status">{phase === 'APPLIED' ? 'EA acknowledged · ' + (ack?.ea_ack_utc ?? '') : phase === 'TIMEOUT' ? copy('Outcome unknown. Do not resubmit.') : phase === 'REJECTED' ? `Rejected: ${ack?.reason}` : ack?.request_id}</span></div>
+ {error && <p role="alert" className="error">{error}</p>}
  </form>}</PageState></>;
 }

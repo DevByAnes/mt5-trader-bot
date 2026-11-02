@@ -14,8 +14,6 @@ pub fn run() {
     let token = Zeroizing::new(bytes.iter().map(|b| format!("{b:02x}")).collect());
     tauri::Builder::default()
         .manage(SessionToken(Mutex::new(token)))
-        .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![session_token])
         .run(tauri::generate_context!()).expect("failed to run application");
 }
