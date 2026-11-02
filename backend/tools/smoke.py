@@ -16,7 +16,12 @@ from websockets.asyncio.client import connect
 
 def run_smoke(*, stdin: bool = False) -> None:
     token = secrets.token_urlsafe(48)
-    environment = {**os.environ, "AURUM_ENV": "production", "AURUM_SCENARIO": "normal"}
+    environment = {
+        **os.environ,
+        "AURUM_ENV": "production",
+        "AURUM_SCENARIO": "normal",
+        "AURUM_BACKEND_MODE": "fixture",
+    }
     environment.pop("AURUM_SESSION_TOKEN", None)
     environment.pop("AURUM_TOKEN_STDIN", None)
     if stdin:
@@ -32,7 +37,7 @@ def run_smoke(*, stdin: bool = False) -> None:
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+        creationflags=int(getattr(subprocess, "CREATE_NO_WINDOW", 0)) if os.name == "nt" else 0,
     )
     try:
         if stdin:

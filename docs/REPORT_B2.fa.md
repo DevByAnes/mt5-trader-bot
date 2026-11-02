@@ -20,7 +20,7 @@
 |---|---|
 | `uv run pytest -q` | ۱۶۵ passed؛ warningها خطا محسوب می‌شوند |
 | `uv run aurum-lint` | Ruff و guard عدم ارسال سفارش پاس |
-| `uv run mypy` | بدون خطا، ۸۲ فایل |
+| `uv run mypy` | بدون خطا، ۸۲ فایل؛ بررسی `--platform linux` و `--platform win32` نیز پاس |
 | `uv run python -m tools.gen_models --check` | خروجی مدل‌ها مطابق Schema |
 | `uv run python -m tools.shared_settings --check` | خروجی مشترک MQL5 مطابق Schema |
 | `uv run python -m tools.guard_demo` | نمونهٔ ممنوع عمداً رد شد |
