@@ -70,7 +70,9 @@ try{
  const filePage=await browser.newPage({viewport:{width:1440,height:900}});
  await filePage.goto(origin+'/overview');
  await filePage.evaluate(async value=>{const client=await import('/src/shared/api/client.ts');client.setSessionToken(value);},token);
- await expect(filePage.locator('.health-node').filter({hasText:'EA'})).toContainText('offline',{timeout:15000});
+ await expect(filePage.locator('.health-node').filter({hasText:'Python'})).toContainText('healthy',{timeout:15000});
+ await expect(filePage.locator('.health-node').filter({hasText:/^× EA/})).toContainText('offline',{timeout:15000});
+ await expect(filePage.getByText('Loading data...',{exact:true})).toHaveCount(0,{timeout:15000});
  await expect(filePage.getByRole('button',{name:'Halt entries'})).toBeDisabled();
  await expect(filePage.getByTestId('server-fixture-label')).toHaveCount(0);
  await filePage.screenshot({path:'docs/screenshots/integration/file-no-ea.png',fullPage:true});

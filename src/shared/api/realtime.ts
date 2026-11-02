@@ -38,7 +38,12 @@ export function connectRealtime(onEvent: (e: RealtimeEvent) => void, onState: (s
             lastSeq = e.seq;
             lastSeen = Date.now();
             const health = e.type === 'heartbeat' ? e.payload as Models['Status'] : undefined;
-            if (health) healthStale = Object.values(health).some(n => n && typeof n === 'object' && 'state' in n && (n.state === 'stale' || ('heartbeat_utc' in n && typeof n.heartbeat_utc === 'string' && Date.now() - Date.parse(n.heartbeat_utc) > 6000)));
+            if (health) healthStale = (['backend', 'ea', 'mt5'] as const).some(key => {
+                const node = health[key];
+                if (!node || node.state !== 'healthy' || !node.heartbeat_utc) return true;
+                const observed = Date.parse(node.heartbeat_utc);
+                return !Number.isFinite(observed) || Date.now() - observed > 6000;
+            });
             onState({ status: healthStale ? 'stale' : 'online', attempt: 0, lastEventUtc: e.server_time_utc, gap });
             if (gap)
                 onSnapshot();

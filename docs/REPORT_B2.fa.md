@@ -26,14 +26,16 @@
 | `uv run python -m tools.guard_demo` | نمونهٔ ممنوع عمداً رد شد |
 | `uv run python -m tools.smoke` | HTTP/WS واقعی با توکن environment و stdin پاس |
 | `npm run lint` و `npm run contract:check` | پاس |
-| `npm test` | ۹ passed |
+| `npm test` | ۱۲ passed |
 | `npm run test:e2e` | ۲۰ passed |
 | `npm run test:integration` | دو سناریوی مرورگر/FastAPI واقعی پاس |
 | `npm run build` | typecheck و build وب پاس؛ هشدار bundle حدود ۶۰۳ kB باقی است |
 
 تست‌های جدید شامل امضای نامعتبر و بایت تصادفی، پیام منقضی، replay، خرابی replace، قطع EA، restart میان پذیرش و انتشار، Ack دیررس/متعارض، خطای دیسک و بازیابی همان درخواست، عدم گرسنگی Ack معتبر پشت فایل خراب، رقابت دو اتصال برای نسخه، rollback مهاجرت ناموفق، هویت متفاوت حساب، دستکاری Audit، کندل باز، prefix سوئینگ، شکاف داده، ترتیب مبهم SL/TP، خبر فاقد پوشش و DST هستند.
 
-تست مرورگر با MSW خاموش ابتدا دو تنظیم متوالی را از FastAPI در **Fixture** می‌گیرد و Ack/نسخهٔ ۸ و ۹ را بررسی می‌کند. سپس سرور در حالت **FILE بدون EA** اجرا می‌شود؛ EA آفلاین، داده unavailable و فرمان‌ها غیرفعال‌اند. این تست نه EA واقعی است نه Demo. تصاویر: [Fixture](screenshots/integration/python-dashboard.png)، [FILE بدون EA](screenshots/integration/file-no-ea.png).
+تست مرورگر با MSW خاموش ابتدا دو تنظیم متوالی را از FastAPI در **Fixture** می‌گیرد و Ack/نسخهٔ ۸ و ۹ را بررسی می‌کند. سپس سرور در حالت **FILE بدون EA** اجرا می‌شود؛ پس از اتصال واقعی و healthy شدن Python، EA آفلاین، داده unavailable و فرمان‌ها غیرفعال‌اند. تست واحد قطع هر سه مؤلفه و بازیابی را هم می‌سنجد. این تست نه EA واقعی است نه Demo. تصاویر: [Fixture](screenshots/integration/python-dashboard.png)، [FILE بدون EA](screenshots/integration/file-no-ea.png).
+
+CI عمداً از `uv sync --managed-python` استفاده می‌کند؛ Python پیش‌نصب‌شدهٔ runner ویندوز با همین شمارهٔ نسخه، SQLite قدیمی‌تر داشت و به‌درستی توسط gate دیتابیس رد شد. fingerprint طرح‌ها نیز بر متن UTF-8 با پایان‌خط یکسان محاسبه می‌شود تا checkout ویندوز و لینوکس اختلاف جعلی نسازند؛ تغییر محتوای واقعی همچنان drift است.
 
 ## موارد باقی‌مانده و کمک لازم
 
