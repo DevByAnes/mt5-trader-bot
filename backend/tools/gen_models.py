@@ -13,6 +13,8 @@ TARGET = ROOT / "backend/src/aurum_backend/models"
 SOURCES = {
     "generated.py": ("openapi.yaml", "openapi"),
     "generated_settings.py": ("settings.schema.json", "jsonschema"),
+    "generated_session.py": ("session.openapi.yaml", "openapi"),
+    "generated_settings_v2.py": ("settings.v2.schema.json", "jsonschema"),
 }
 
 
@@ -55,7 +57,12 @@ def outputs() -> dict[str, str]:
                 "aurum_backend.models.base.SchemaModel",
             ]
             if kind == "jsonschema":
-                command += ["--class-name", "SettingsMetadataValues"]
+                command += [
+                    "--class-name",
+                    "EASettings"
+                    if source == "settings.v2.schema.json"
+                    else "SettingsMetadataValues",
+                ]
             subprocess.run(command, check=True, capture_output=True)  # noqa: S603
             subprocess.run(  # noqa: S603
                 [
@@ -74,7 +81,14 @@ def outputs() -> dict[str, str]:
             result[filename] = output.read_text(encoding="utf-8")
     hashes = {
         p: hashlib.sha256((ROOT / "schema" / p).read_bytes()).hexdigest()
-        for p in ["openapi.yaml", "settings.schema.json", "events.json"]
+        for p in [
+            "openapi.yaml",
+            "settings.schema.json",
+            "events.json",
+            "session.openapi.yaml",
+            "bridge.schema.json",
+            "settings.v2.schema.json",
+        ]
     }
     result["sources.json"] = json.dumps(hashes, indent=2, sort_keys=True) + "\n"
     return result

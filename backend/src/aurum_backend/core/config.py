@@ -3,6 +3,9 @@
 import os
 import sys
 from dataclasses import dataclass, field
+from pathlib import Path
+
+from aurum_backend.security.secrets import bridge_key
 
 SCENARIOS = (
     "normal",
@@ -45,8 +48,32 @@ class Config:
     max_clients: int = 32
     max_operations: int = 10000
     max_body_bytes: int = 65536
+    backend_mode: str = "fixture"
+    bridge_directory: Path | None = None
+    database_path: Path | None = None
+    bridge_key: bytes | None = field(default=None, repr=False)
+    bridge_key_id: str = "local-v1"
+    ea_account: str = ""
+    ea_symbol: str = "XAUUSD"
+    ea_magic: int = 260110
 
     def __post_init__(self) -> None:
+        if self.backend_mode not in {"fixture", "file"}:
+            raise ValueError("Invalid backend mode")
+        if self.backend_mode == "file" and (
+            self.bridge_directory is None
+            or self.database_path is None
+            or not self.bridge_key
+            or len(self.bridge_key) < 32
+            or not self.ea_account
+        ):
+            raise ValueError("FILE mode requires explicit paths, key and EA identity")
+        if self.backend_mode == "file" and self.scenario != "normal":
+            raise ValueError("Scenarios are unavailable in FILE mode")
+        if self.backend_mode == "file":
+            for path in [self.bridge_directory, self.database_path]:
+                if path is None or not path.is_absolute() or path.drive.startswith("\\\\"):
+                    raise ValueError("FILE storage requires absolute local paths")
         if len(self.token) < 32 or not self.token.isascii() or any(c.isspace() for c in self.token):
             raise ValueError(
                 "Session token must contain at least 32 non-whitespace ASCII characters"
@@ -79,6 +106,7 @@ class Config:
         if not token and os.environ.get("AURUM_TOKEN_STDIN") == "1":
             token = sys.stdin.readline(4097).rstrip("\r\n")
         origins = os.environ.get("AURUM_ALLOWED_ORIGINS")
+        mode = os.environ.get("AURUM_BACKEND_MODE", "fixture")
         return cls(
             token=token,
             environment=os.environ.get("AURUM_ENV", "development"),
@@ -86,4 +114,16 @@ class Config:
             origins=tuple(x.strip() for x in origins.split(",") if x.strip())
             if origins is not None
             else DEFAULT_ORIGINS,
+            backend_mode=mode,
+            bridge_directory=Path(os.environ["AURUM_BRIDGE_DIRECTORY"])
+            if os.environ.get("AURUM_BRIDGE_DIRECTORY")
+            else None,
+            database_path=Path(os.environ["AURUM_DATABASE_PATH"])
+            if os.environ.get("AURUM_DATABASE_PATH")
+            else None,
+            bridge_key=bridge_key(),
+            bridge_key_id=os.environ.get("AURUM_BRIDGE_KEY_ID", "local-v1"),
+            ea_account=os.environ.get("AURUM_EA_ACCOUNT", ""),
+            ea_symbol=os.environ.get("AURUM_EA_SYMBOL", "XAUUSD"),
+            ea_magic=int(os.environ.get("AURUM_EA_MAGIC", "260110")),
         )

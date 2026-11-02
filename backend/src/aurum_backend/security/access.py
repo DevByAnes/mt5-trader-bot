@@ -45,7 +45,7 @@ class SecurityMiddleware:
         async def respond(status: int, code: str, message: str) -> None:
             response = error_response(status, code, message)
             response.headers["Cache-Control"] = "no-store"
-            response.headers["X-Aurum-Mode"] = "fixture"
+            response.headers["X-Aurum-Mode"] = self.config.backend_mode
             if status == 503:
                 response.headers["Retry-After"] = "60"
             if status == 401:
@@ -96,6 +96,15 @@ class SecurityMiddleware:
         raw = headers.get("authorization", "")
         supplied = raw[7:] if raw.startswith("Bearer ") else ""
         valid = hmac.compare_digest(supplied.encode("utf-8"), self.config.token.encode("ascii"))
+        if (
+            scope["type"] == "websocket"
+            and not raw
+            and origin in self.config.origins
+            and self.unauthenticated.admit()
+        ):
+            scope.setdefault("state", {})["ws_requires_ticket"] = True
+            await self.app(scope, receive, send)
+            return
         if not valid:
             if self.unauthenticated.admit():
                 await respond(401, "UNAUTHORIZED", "Session token required")
@@ -110,10 +119,11 @@ class SecurityMiddleware:
             if message["type"] in {"http.response.start", "websocket.http.response.start"}:
                 outgoing = MutableHeaders(scope=message)
                 outgoing["Cache-Control"] = "no-store"
-                outgoing["X-Aurum-Mode"] = "fixture"
+                outgoing["X-Aurum-Mode"] = self.config.backend_mode
                 outgoing["X-Content-Type-Options"] = "nosniff"
                 if origin in self.config.origins:
                     outgoing["Access-Control-Allow-Origin"] = origin
+                    outgoing["Access-Control-Expose-Headers"] = "X-Aurum-Mode"
                     outgoing["Vary"] = "Origin"
             await send(message)
 

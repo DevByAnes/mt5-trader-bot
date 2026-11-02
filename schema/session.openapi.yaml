@@ -1,0 +1,140 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Aurum local session extensions",
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8765/api/v2"
+    }
+  ],
+  "security": [
+    {
+      "session": []
+    }
+  ],
+  "paths": {
+    "/session/ws-ticket": {
+      "post": {
+        "operationId": "issueSocketTicket",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One-use ticket; send only in first WS frame",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocketTicketEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authenticated local service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "openapi.yaml#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated local service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "openapi.yaml#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Authenticated local service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "openapi.yaml#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Authenticated local service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "openapi.yaml#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "session": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "SocketTicket": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ticket",
+          "expires_in_seconds"
+        ],
+        "properties": {
+          "ticket": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 128
+          },
+          "expires_in_seconds": {
+            "type": "integer",
+            "const": 10
+          }
+        }
+      },
+      "SocketTicketEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "error",
+          "api_version",
+          "server_time_utc"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SocketTicket"
+          },
+          "error": {
+            "type": "null"
+          },
+          "api_version": {
+            "const": "1.0.0"
+          },
+          "server_time_utc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

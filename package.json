@@ -11,10 +11,11 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "api:generate": "openapi-typescript schema/openapi.yaml -o src/shared/api/generated.ts",
+    "api:generate": "node scripts/generate-api.mjs",
     "tauri": "tauri",
     "contract:check": "node scripts/contract-check.mjs",
-    "screenshots": "node scripts/capture.mjs after"
+    "screenshots": "node scripts/capture.mjs after",
+    "test:integration": "node tests/integration/python-dashboard.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "7.0.1",

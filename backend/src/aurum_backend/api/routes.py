@@ -13,7 +13,7 @@ from aurum_backend.api.deps import fixture_state
 from aurum_backend.api.envelope import envelope
 from aurum_backend.api.errors import ApiFault
 from aurum_backend.core.resources import OPENAPI
-from aurum_backend.fixtures.state import READS, FixtureState
+from aurum_backend.fixtures.state import READS
 from aurum_backend.models.base import validate_schema
 from aurum_backend.models.generated import ApplyRequest, CommandRequest
 
@@ -153,7 +153,7 @@ async def rollback(request: Request, identity: str) -> JSONResponse:
     query(request, set())
     if await request.body() not in {b"", b"{}"}:
         raise ApiFault("VALIDATION_ERROR", "Rollback accepts no request payload")
-    state: FixtureState = fixture_state(request)
+    state = fixture_state(request)
     async with state.lock:
         state.available()
         row = next((row for row in state.audit if row["id"] == identity), None)

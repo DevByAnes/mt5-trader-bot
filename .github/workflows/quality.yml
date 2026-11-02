@@ -16,6 +16,9 @@ jobs:
       - run: pnpm lint && pnpm typecheck && pnpm test && pnpm contract:check && pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      - run: python -m pip install uv==0.13.6
+      - run: python -m uv sync --project backend --frozen
+      - run: pnpm test:integration
       - uses: actions/upload-artifact@v4
         if: always()
         with:

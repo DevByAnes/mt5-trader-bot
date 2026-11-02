@@ -2,10 +2,12 @@ import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import Ajv from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
-const path='src/shared/api/generated.ts';const old=fs.readFileSync(path,'utf8');
 const bin='node_modules/openapi-typescript/bin/cli.js';
-execFileSync(process.execPath,[bin,'schema/openapi.yaml','-o',path],{stdio:'pipe'});
-if(fs.readFileSync(path,'utf8')!==old){fs.writeFileSync(path,old);throw Error('API types drifted. Run pnpm api:generate and review the diff.');}
+for(const [schema,path] of [['schema/openapi.yaml','src/shared/api/generated.ts'],['schema/session.openapi.yaml','src/shared/api/session-generated.ts'],['schema/settings.v2.openapi.yaml','src/shared/api/settings-generated.ts']]){
+ const old=fs.readFileSync(path,'utf8');
+ execFileSync(process.execPath,[bin,schema,'-o',path],{stdio:'pipe'});
+ if(fs.readFileSync(path,'utf8')!==old){fs.writeFileSync(path,old);throw Error('API types drifted: '+schema+'. Regenerate and review the diff.');}
+}
 const spec=JSON.parse(fs.readFileSync('schema/openapi.yaml','utf8'));
 const settings=JSON.parse(fs.readFileSync('schema/settings.schema.json','utf8'));
 for(const [key,meta] of Object.entries(settings.properties)){

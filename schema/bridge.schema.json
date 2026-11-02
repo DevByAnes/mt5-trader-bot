@@ -1,0 +1,542 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "Payload": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "STATE"
+            },
+            "sender": {
+              "const": "EA"
+            },
+            "message_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "ea_instance_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "issued_at_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "expires_at_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "body": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "account_id": {
+                  "type": "string"
+                },
+                "symbol": {
+                  "type": "string"
+                },
+                "magic": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "resources": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "Status": {
+                      "anyOf": [
+                        {
+                          "$ref": "openapi.yaml#/components/schemas/Status"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "EaState": {
+                      "anyOf": [
+                        {
+                          "$ref": "openapi.yaml#/components/schemas/EaState"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "Positions": {
+                      "anyOf": [
+                        {
+                          "$ref": "openapi.yaml#/components/schemas/Positions"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "DailyRisk": {
+                      "anyOf": [
+                        {
+                          "$ref": "openapi.yaml#/components/schemas/DailyRisk"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "SettingsData": {
+                      "anyOf": [
+                        {
+                          "$ref": "openapi.yaml#/components/schemas/SettingsData"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "Signals": {
+                      "anyOf": [
+                        {
+                          "$ref": "openapi.yaml#/components/schemas/Signals"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "Chart": {
+                      "anyOf": [
+                        {
+                          "$ref": "openapi.yaml#/components/schemas/Chart"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "Telemetry": {
+                      "anyOf": [
+                        {
+                          "$ref": "openapi.yaml#/components/schemas/Telemetry"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "Journal": {
+                      "anyOf": [
+                        {
+                          "$ref": "openapi.yaml#/components/schemas/Journal"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "Validation": {
+                      "anyOf": [
+                        {
+                          "$ref": "openapi.yaml#/components/schemas/Validation"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "Logs": {
+                      "anyOf": [
+                        {
+                          "$ref": "openapi.yaml#/components/schemas/Logs"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "Status",
+                    "EaState",
+                    "Positions",
+                    "DailyRisk",
+                    "SettingsData",
+                    "Signals",
+                    "Chart",
+                    "Telemetry",
+                    "Journal",
+                    "Validation",
+                    "Logs"
+                  ]
+                }
+              },
+              "required": [
+                "account_id",
+                "symbol",
+                "magic",
+                "resources"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "sender",
+            "message_id",
+            "ea_instance_id",
+            "seq",
+            "issued_at_ms",
+            "expires_at_ms",
+            "body"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "ACK"
+            },
+            "sender": {
+              "const": "EA"
+            },
+            "message_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "ea_instance_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "issued_at_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "expires_at_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "body": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "request_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "status": {
+                  "enum": [
+                    "APPLIED",
+                    "REJECTED"
+                  ]
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "version": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "ea_ack_utc": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "request_id",
+                "status",
+                "reason",
+                "version",
+                "ea_ack_utc"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "sender",
+            "message_id",
+            "ea_instance_id",
+            "seq",
+            "issued_at_ms",
+            "expires_at_ms",
+            "body"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "CONFIG"
+            },
+            "sender": {
+              "const": "PYTHON"
+            },
+            "message_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "ea_instance_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "issued_at_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "expires_at_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "body": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "request_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "base_version": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "config_version": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "values": {
+                  "$ref": "openapi.yaml#/components/schemas/SettingsDraft"
+                },
+                "apply_at": {
+                  "enum": [
+                    "NEXT_M15",
+                    "NEXT_DAY"
+                  ]
+                },
+                "confirmed_loosen": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "request_id",
+                "base_version",
+                "config_version",
+                "values",
+                "apply_at",
+                "confirmed_loosen"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "sender",
+            "message_id",
+            "ea_instance_id",
+            "seq",
+            "issued_at_ms",
+            "expires_at_ms",
+            "body"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "COMMAND"
+            },
+            "sender": {
+              "const": "PYTHON"
+            },
+            "message_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "ea_instance_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "issued_at_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "expires_at_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "body": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "request_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "command": {
+                  "enum": [
+                    "kill-switch",
+                    "risk-free-all",
+                    "risk-free-position",
+                    "close-position"
+                  ]
+                },
+                "position_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "request_id",
+                "command",
+                "position_id"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "sender",
+            "message_id",
+            "ea_instance_id",
+            "seq",
+            "issued_at_ms",
+            "expires_at_ms",
+            "body"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "HEARTBEAT"
+            },
+            "sender": {
+              "const": "PYTHON"
+            },
+            "message_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "ea_instance_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "issued_at_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "expires_at_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "body": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "api_version": {
+                  "const": "1.0.0"
+                }
+              },
+              "required": [
+                "api_version"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "sender",
+            "message_id",
+            "ea_instance_id",
+            "seq",
+            "issued_at_ms",
+            "expires_at_ms",
+            "body"
+          ]
+        }
+      ]
+    },
+    "Wire": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": "1.0.0"
+        },
+        "key_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "payload_b64": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 2097152
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "hmac_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "key_id",
+        "payload_b64",
+        "sha256",
+        "hmac_sha256"
+      ]
+    }
+  },
+  "$ref": "#/$defs/Wire",
+  "title": "Aurum FILE wire v1",
+  "x-signature": "HMAC-SHA256(key, UTF8('AURUM-FILE-V1\\n' + key_id + '\\n') + payload_bytes); SHA256 covers exact decoded payload bytes. Strict UTF-8 JSON; no BOM/duplicate keys/nonfinite values."
+}

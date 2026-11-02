@@ -1,0 +1,2336 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Aurum shared EA inputs",
+    "version": "2.0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "EASettings": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "EASettings",
+        "type": "object",
+        "additionalProperties": false,
+        "schema_version": "2.0.0",
+        "required": [
+          "InpExecutionMode",
+          "InpConfirmLive",
+          "InpAllowRealAccount",
+          "InpAllowRemoteConfig",
+          "InpAllowLiveFromConfig",
+          "InpSymbol",
+          "InpMagic",
+          "InpDeviationPoints",
+          "InpKillSwitch",
+          "InpCapitalBasis",
+          "InpRiskProfile",
+          "InpRiskPerTrade",
+          "InpMaxTradesPerDay",
+          "InpMaxSimultaneous",
+          "InpMinMarginLevel",
+          "InpDailyLossLimit",
+          "InpDailyProfitTarget",
+          "InpForceCloseDailyLoss",
+          "InpTradingDayStartUtcHour",
+          "InpBreakEvenEnabled",
+          "InpBreakEvenTriggerR",
+          "InpBreakEvenBufferAtr",
+          "InpPartialCloseEnabled",
+          "InpPartialCloseAtR",
+          "InpPartialClosePercent",
+          "InpTrailingEnabled",
+          "InpTrailingAtr",
+          "InpMaxHoldingHours",
+          "InpPreNewsAction",
+          "InpPreWeekendAction",
+          "InpAbnormalAction",
+          "InpLondonEnabled",
+          "InpOverlapEnabled",
+          "InpNewYorkEnabled",
+          "InpLondonStartMinute",
+          "InpLondonEndMinute",
+          "InpOverlapStartMinute",
+          "InpOverlapEndMinute",
+          "InpNewYorkStartMinute",
+          "InpNewYorkEndMinute",
+          "InpEndOfDayEntryBufferMinutes",
+          "InpWeekendEntryBufferMinutes",
+          "InpBrokerOffsetMode",
+          "InpBrokerUtcOffsetMinutes",
+          "InpNewsFilterEnabled",
+          "InpNewsBeforeMinutes",
+          "InpNewsAfterMinutes",
+          "InpTesterNewsCsv",
+          "InpMaxSpreadPoints",
+          "InpMaxSpreadAtr",
+          "InpMaxSpreadStopRatio",
+          "InpCostsKnown",
+          "InpCommissionRoundTripPerLot",
+          "InpSlippagePoints",
+          "InpMinNetRR",
+          "InpAtrPeriod",
+          "InpEmaPeriod",
+          "InpRsiPeriod",
+          "InpRsiUpper",
+          "InpRsiLower",
+          "InpAdxMin",
+          "InpSwingLeft",
+          "InpSwingRight",
+          "InpReversalEnabled",
+          "InpContinuationEnabled",
+          "InpSweepAtr",
+          "InpSweepConfirmBars",
+          "InpDisplacementAtr",
+          "InpBodyRatio",
+          "InpRetestMinBars",
+          "InpRetestMaxBars",
+          "InpZoneWidthAtr",
+          "InpMaxLevelTouches",
+          "InpMaxLevelAgeBars",
+          "InpStopBufferAtr",
+          "InpMinStopAtr",
+          "InpMaxStopAtr",
+          "InpMaxSignalRangeAtr",
+          "InpMaxAdrFraction",
+          "InpCooldownAfterSlBars",
+          "InpLogFvg",
+          "InpLogOrderBlock",
+          "InpLogCandlePatterns",
+          "InpUseDxyFeature",
+          "InpBridgeMode",
+          "InpBridgeFailPolicy",
+          "InpConfigSource",
+          "InpTimerSeconds",
+          "InpAlertEnabled",
+          "InpPushEnabled",
+          "InpEmailEnabled",
+          "InpTelegramEnabled",
+          "InpDebugDeterminism",
+          "InpMlEnabled"
+        ],
+        "properties": {
+          "InpExecutionMode": {
+            "key": "InpExecutionMode",
+            "type": "string",
+            "default": "SIGNAL_ONLY",
+            "min": null,
+            "max": null,
+            "step": null,
+            "enum": [
+              "SIGNAL_ONLY",
+              "PAPER",
+              "LIVE"
+            ],
+            "group": "execution",
+            "apply": "COLD",
+            "risk_level": "HIGH",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "Execution mode",
+              "fa": "Execution mode"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "InpConfirmLive": {
+            "key": "InpConfirmLive",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "execution",
+            "apply": "COLD",
+            "risk_level": "HIGH",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpConfirmLive",
+              "fa": "InpConfirmLive"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpAllowRealAccount": {
+            "key": "InpAllowRealAccount",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "execution",
+            "apply": "COLD",
+            "risk_level": "HIGH",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpAllowRealAccount",
+              "fa": "InpAllowRealAccount"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpAllowRemoteConfig": {
+            "key": "InpAllowRemoteConfig",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "execution",
+            "apply": "COLD",
+            "risk_level": "HIGH",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpAllowRemoteConfig",
+              "fa": "InpAllowRemoteConfig"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpAllowLiveFromConfig": {
+            "key": "InpAllowLiveFromConfig",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "execution",
+            "apply": "COLD",
+            "risk_level": "HIGH",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpAllowLiveFromConfig",
+              "fa": "InpAllowLiveFromConfig"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpSymbol": {
+            "key": "InpSymbol",
+            "type": "string",
+            "default": "XAUUSD",
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "execution",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "Gold symbol",
+              "fa": "Gold symbol"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "InpMagic": {
+            "key": "InpMagic",
+            "type": "integer",
+            "default": 260110,
+            "min": 1,
+            "max": 2147483647,
+            "step": 1,
+            "group": "execution",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpMagic",
+              "fa": "InpMagic"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "InpDeviationPoints": {
+            "key": "InpDeviationPoints",
+            "type": "integer",
+            "default": 20,
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "group": "execution",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpDeviationPoints",
+              "fa": "InpDeviationPoints"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0,
+            "maximum": 100,
+            "multipleOf": 1
+          },
+          "InpKillSwitch": {
+            "key": "InpKillSwitch",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "execution",
+            "apply": "HOT",
+            "risk_level": "HIGH",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpKillSwitch",
+              "fa": "InpKillSwitch"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpCapitalBasis": {
+            "key": "InpCapitalBasis",
+            "type": "string",
+            "default": "EQUITY",
+            "min": null,
+            "max": null,
+            "step": null,
+            "enum": [
+              "EQUITY",
+              "BALANCE"
+            ],
+            "group": "risk",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpCapitalBasis",
+              "fa": "InpCapitalBasis"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "InpRiskProfile": {
+            "key": "InpRiskProfile",
+            "type": "string",
+            "default": "CONSERVATIVE",
+            "min": null,
+            "max": null,
+            "step": null,
+            "enum": [
+              "CONSERVATIVE",
+              "MODERATE",
+              "AGGRESSIVE",
+              "CUSTOM"
+            ],
+            "group": "risk",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpRiskProfile",
+              "fa": "InpRiskProfile"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "InpRiskPerTrade": {
+            "key": "InpRiskPerTrade",
+            "type": "number",
+            "default": 0.5,
+            "min": 0.1,
+            "max": 2,
+            "step": 0.1,
+            "group": "risk",
+            "apply": "HOT",
+            "risk_level": "HIGH",
+            "risk_direction": "HIGHER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpRiskPerTrade",
+              "fa": "InpRiskPerTrade"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.1,
+            "maximum": 2,
+            "multipleOf": 0.1
+          },
+          "InpMaxTradesPerDay": {
+            "key": "InpMaxTradesPerDay",
+            "type": "integer",
+            "default": 8,
+            "min": 1,
+            "max": 20,
+            "step": 1,
+            "group": "risk",
+            "apply": "HOT",
+            "risk_level": "HIGH",
+            "risk_direction": "HIGHER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMaxTradesPerDay",
+              "fa": "InpMaxTradesPerDay"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 20,
+            "multipleOf": 1
+          },
+          "InpMaxSimultaneous": {
+            "key": "InpMaxSimultaneous",
+            "type": "integer",
+            "default": 1,
+            "min": 1,
+            "max": 3,
+            "step": 1,
+            "group": "risk",
+            "apply": "HOT",
+            "risk_level": "HIGH",
+            "risk_direction": "HIGHER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMaxSimultaneous",
+              "fa": "InpMaxSimultaneous"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 3,
+            "multipleOf": 1
+          },
+          "InpMinMarginLevel": {
+            "key": "InpMinMarginLevel",
+            "type": "integer",
+            "default": 300,
+            "min": 100,
+            "max": 2000,
+            "step": 10,
+            "group": "risk",
+            "apply": "HOT",
+            "risk_level": "HIGH",
+            "risk_direction": "LOWER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMinMarginLevel",
+              "fa": "InpMinMarginLevel"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 100,
+            "maximum": 2000,
+            "multipleOf": 10
+          },
+          "InpDailyLossLimit": {
+            "key": "InpDailyLossLimit",
+            "type": "number",
+            "default": 2.0,
+            "min": 0.5,
+            "max": 5,
+            "step": 0.1,
+            "group": "daily",
+            "apply": "HOT",
+            "risk_level": "HIGH",
+            "risk_direction": "HIGHER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpDailyLossLimit",
+              "fa": "InpDailyLossLimit"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.5,
+            "maximum": 5,
+            "multipleOf": 0.1
+          },
+          "InpDailyProfitTarget": {
+            "key": "InpDailyProfitTarget",
+            "type": "number",
+            "default": 3.0,
+            "min": 0.5,
+            "max": 10,
+            "step": 0.1,
+            "group": "daily",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "HIGHER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpDailyProfitTarget",
+              "fa": "InpDailyProfitTarget"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.5,
+            "maximum": 10,
+            "multipleOf": 0.1
+          },
+          "InpForceCloseDailyLoss": {
+            "key": "InpForceCloseDailyLoss",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "daily",
+            "apply": "HOT",
+            "risk_level": "HIGH",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpForceCloseDailyLoss",
+              "fa": "InpForceCloseDailyLoss"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpTradingDayStartUtcHour": {
+            "key": "InpTradingDayStartUtcHour",
+            "type": "integer",
+            "default": 0,
+            "min": 0,
+            "max": 23,
+            "step": 1,
+            "group": "daily",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpTradingDayStartUtcHour",
+              "fa": "InpTradingDayStartUtcHour"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0,
+            "maximum": 23,
+            "multipleOf": 1
+          },
+          "InpBreakEvenEnabled": {
+            "key": "InpBreakEvenEnabled",
+            "type": "boolean",
+            "default": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "management",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpBreakEvenEnabled",
+              "fa": "InpBreakEvenEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpBreakEvenTriggerR": {
+            "key": "InpBreakEvenTriggerR",
+            "type": "number",
+            "default": 1.0,
+            "min": 0.5,
+            "max": 2,
+            "step": 0.1,
+            "group": "management",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpBreakEvenTriggerR",
+              "fa": "InpBreakEvenTriggerR"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.5,
+            "maximum": 2,
+            "multipleOf": 0.1
+          },
+          "InpBreakEvenBufferAtr": {
+            "key": "InpBreakEvenBufferAtr",
+            "type": "number",
+            "default": 0.05,
+            "min": 0,
+            "max": 0.3,
+            "step": 0.01,
+            "group": "management",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpBreakEvenBufferAtr",
+              "fa": "InpBreakEvenBufferAtr"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0,
+            "maximum": 0.3,
+            "multipleOf": 0.01
+          },
+          "InpPartialCloseEnabled": {
+            "key": "InpPartialCloseEnabled",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "management",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpPartialCloseEnabled",
+              "fa": "InpPartialCloseEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpPartialCloseAtR": {
+            "key": "InpPartialCloseAtR",
+            "type": "number",
+            "default": 1.5,
+            "min": 0.5,
+            "max": 3,
+            "step": 0.1,
+            "group": "management",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpPartialCloseAtR",
+              "fa": "InpPartialCloseAtR"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.5,
+            "maximum": 3,
+            "multipleOf": 0.1
+          },
+          "InpPartialClosePercent": {
+            "key": "InpPartialClosePercent",
+            "type": "integer",
+            "default": 50,
+            "min": 10,
+            "max": 80,
+            "step": 10,
+            "group": "management",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpPartialClosePercent",
+              "fa": "InpPartialClosePercent"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 10,
+            "maximum": 80,
+            "multipleOf": 10
+          },
+          "InpTrailingEnabled": {
+            "key": "InpTrailingEnabled",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "management",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpTrailingEnabled",
+              "fa": "InpTrailingEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpTrailingAtr": {
+            "key": "InpTrailingAtr",
+            "type": "number",
+            "default": 1.5,
+            "min": 0.5,
+            "max": 4,
+            "step": 0.1,
+            "group": "management",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpTrailingAtr",
+              "fa": "InpTrailingAtr"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.5,
+            "maximum": 4,
+            "multipleOf": 0.1
+          },
+          "InpMaxHoldingHours": {
+            "key": "InpMaxHoldingHours",
+            "type": "integer",
+            "default": 24,
+            "min": 1,
+            "max": 24,
+            "step": 1,
+            "group": "management",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMaxHoldingHours",
+              "fa": "InpMaxHoldingHours"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 24,
+            "multipleOf": 1
+          },
+          "InpPreNewsAction": {
+            "key": "InpPreNewsAction",
+            "type": "string",
+            "default": "BREAK_EVEN",
+            "min": null,
+            "max": null,
+            "step": null,
+            "enum": [
+              "NONE",
+              "BREAK_EVEN",
+              "CLOSE"
+            ],
+            "group": "management",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpPreNewsAction",
+              "fa": "InpPreNewsAction"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "InpPreWeekendAction": {
+            "key": "InpPreWeekendAction",
+            "type": "string",
+            "default": "BREAK_EVEN",
+            "min": null,
+            "max": null,
+            "step": null,
+            "enum": [
+              "NONE",
+              "BREAK_EVEN",
+              "CLOSE"
+            ],
+            "group": "management",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpPreWeekendAction",
+              "fa": "InpPreWeekendAction"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "InpAbnormalAction": {
+            "key": "InpAbnormalAction",
+            "type": "string",
+            "default": "ALERT",
+            "min": null,
+            "max": null,
+            "step": null,
+            "enum": [
+              "NONE",
+              "ALERT",
+              "BREAK_EVEN"
+            ],
+            "group": "management",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpAbnormalAction",
+              "fa": "InpAbnormalAction"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "InpLondonEnabled": {
+            "key": "InpLondonEnabled",
+            "type": "boolean",
+            "default": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "sessions",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpLondonEnabled",
+              "fa": "InpLondonEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpOverlapEnabled": {
+            "key": "InpOverlapEnabled",
+            "type": "boolean",
+            "default": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "sessions",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpOverlapEnabled",
+              "fa": "InpOverlapEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpNewYorkEnabled": {
+            "key": "InpNewYorkEnabled",
+            "type": "boolean",
+            "default": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "sessions",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpNewYorkEnabled",
+              "fa": "InpNewYorkEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpLondonStartMinute": {
+            "key": "InpLondonStartMinute",
+            "type": "integer",
+            "default": 480,
+            "min": 0,
+            "max": 1435,
+            "step": 5,
+            "group": "sessions",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpLondonStartMinute",
+              "fa": "InpLondonStartMinute"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0,
+            "maximum": 1435,
+            "multipleOf": 5
+          },
+          "InpLondonEndMinute": {
+            "key": "InpLondonEndMinute",
+            "type": "integer",
+            "default": 660,
+            "min": 0,
+            "max": 1435,
+            "step": 5,
+            "group": "sessions",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpLondonEndMinute",
+              "fa": "InpLondonEndMinute"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0,
+            "maximum": 1435,
+            "multipleOf": 5
+          },
+          "InpOverlapStartMinute": {
+            "key": "InpOverlapStartMinute",
+            "type": "integer",
+            "default": 780,
+            "min": 0,
+            "max": 1435,
+            "step": 5,
+            "group": "sessions",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpOverlapStartMinute",
+              "fa": "InpOverlapStartMinute"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0,
+            "maximum": 1435,
+            "multipleOf": 5
+          },
+          "InpOverlapEndMinute": {
+            "key": "InpOverlapEndMinute",
+            "type": "integer",
+            "default": 1020,
+            "min": 0,
+            "max": 1435,
+            "step": 5,
+            "group": "sessions",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpOverlapEndMinute",
+              "fa": "InpOverlapEndMinute"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0,
+            "maximum": 1435,
+            "multipleOf": 5
+          },
+          "InpNewYorkStartMinute": {
+            "key": "InpNewYorkStartMinute",
+            "type": "integer",
+            "default": 480,
+            "min": 0,
+            "max": 1435,
+            "step": 5,
+            "group": "sessions",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpNewYorkStartMinute",
+              "fa": "InpNewYorkStartMinute"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0,
+            "maximum": 1435,
+            "multipleOf": 5
+          },
+          "InpNewYorkEndMinute": {
+            "key": "InpNewYorkEndMinute",
+            "type": "integer",
+            "default": 690,
+            "min": 0,
+            "max": 1435,
+            "step": 5,
+            "group": "sessions",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpNewYorkEndMinute",
+              "fa": "InpNewYorkEndMinute"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0,
+            "maximum": 1435,
+            "multipleOf": 5
+          },
+          "InpEndOfDayEntryBufferMinutes": {
+            "key": "InpEndOfDayEntryBufferMinutes",
+            "type": "integer",
+            "default": 30,
+            "min": 5,
+            "max": 120,
+            "step": 5,
+            "group": "sessions",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpEndOfDayEntryBufferMinutes",
+              "fa": "InpEndOfDayEntryBufferMinutes"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 5,
+            "maximum": 120,
+            "multipleOf": 5
+          },
+          "InpWeekendEntryBufferMinutes": {
+            "key": "InpWeekendEntryBufferMinutes",
+            "type": "integer",
+            "default": 120,
+            "min": 30,
+            "max": 360,
+            "step": 15,
+            "group": "sessions",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpWeekendEntryBufferMinutes",
+              "fa": "InpWeekendEntryBufferMinutes"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 30,
+            "maximum": 360,
+            "multipleOf": 15
+          },
+          "InpBrokerOffsetMode": {
+            "key": "InpBrokerOffsetMode",
+            "type": "string",
+            "default": "AUTO",
+            "min": null,
+            "max": null,
+            "step": null,
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ],
+            "group": "sessions",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpBrokerOffsetMode",
+              "fa": "InpBrokerOffsetMode"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "InpBrokerUtcOffsetMinutes": {
+            "key": "InpBrokerUtcOffsetMinutes",
+            "type": "integer",
+            "default": 120,
+            "min": -720,
+            "max": 840,
+            "step": 15,
+            "group": "sessions",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpBrokerUtcOffsetMinutes",
+              "fa": "InpBrokerUtcOffsetMinutes"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": -720,
+            "maximum": 840,
+            "multipleOf": 15
+          },
+          "InpNewsFilterEnabled": {
+            "key": "InpNewsFilterEnabled",
+            "type": "boolean",
+            "default": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "filters",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpNewsFilterEnabled",
+              "fa": "InpNewsFilterEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpNewsBeforeMinutes": {
+            "key": "InpNewsBeforeMinutes",
+            "type": "integer",
+            "default": 30,
+            "min": 5,
+            "max": 120,
+            "step": 5,
+            "group": "filters",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "LOWER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpNewsBeforeMinutes",
+              "fa": "InpNewsBeforeMinutes"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 5,
+            "maximum": 120,
+            "multipleOf": 5
+          },
+          "InpNewsAfterMinutes": {
+            "key": "InpNewsAfterMinutes",
+            "type": "integer",
+            "default": 30,
+            "min": 5,
+            "max": 120,
+            "step": 5,
+            "group": "filters",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "LOWER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpNewsAfterMinutes",
+              "fa": "InpNewsAfterMinutes"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 5,
+            "maximum": 120,
+            "multipleOf": 5
+          },
+          "InpTesterNewsCsv": {
+            "key": "InpTesterNewsCsv",
+            "type": "string",
+            "default": "aurum_news_test.csv",
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "filters",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpTesterNewsCsv",
+              "fa": "InpTesterNewsCsv"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "InpMaxSpreadPoints": {
+            "key": "InpMaxSpreadPoints",
+            "type": "integer",
+            "default": 35,
+            "min": 5,
+            "max": 100,
+            "step": 1,
+            "group": "filters",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "HIGHER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMaxSpreadPoints",
+              "fa": "InpMaxSpreadPoints"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 5,
+            "maximum": 100,
+            "multipleOf": 1
+          },
+          "InpMaxSpreadAtr": {
+            "key": "InpMaxSpreadAtr",
+            "type": "number",
+            "default": 0.1,
+            "min": 0.01,
+            "max": 0.5,
+            "step": 0.01,
+            "group": "filters",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "HIGHER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMaxSpreadAtr",
+              "fa": "InpMaxSpreadAtr"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.01,
+            "maximum": 0.5,
+            "multipleOf": 0.01
+          },
+          "InpMaxSpreadStopRatio": {
+            "key": "InpMaxSpreadStopRatio",
+            "type": "number",
+            "default": 0.1,
+            "min": 0.01,
+            "max": 0.3,
+            "step": 0.01,
+            "group": "filters",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "HIGHER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMaxSpreadStopRatio",
+              "fa": "InpMaxSpreadStopRatio"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.01,
+            "maximum": 0.3,
+            "multipleOf": 0.01
+          },
+          "InpCostsKnown": {
+            "key": "InpCostsKnown",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "costs",
+            "apply": "HOT",
+            "risk_level": "HIGH",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpCostsKnown",
+              "fa": "InpCostsKnown"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpCommissionRoundTripPerLot": {
+            "key": "InpCommissionRoundTripPerLot",
+            "type": "number",
+            "default": 0.0,
+            "min": 0,
+            "max": 100,
+            "step": 0.1,
+            "group": "costs",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpCommissionRoundTripPerLot",
+              "fa": "InpCommissionRoundTripPerLot"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0,
+            "maximum": 100,
+            "multipleOf": 0.1
+          },
+          "InpSlippagePoints": {
+            "key": "InpSlippagePoints",
+            "type": "integer",
+            "default": 10,
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "group": "costs",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpSlippagePoints",
+              "fa": "InpSlippagePoints"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0,
+            "maximum": 100,
+            "multipleOf": 1
+          },
+          "InpMinNetRR": {
+            "key": "InpMinNetRR",
+            "type": "number",
+            "default": 2.0,
+            "min": 2,
+            "max": 3,
+            "step": 0.1,
+            "group": "costs",
+            "apply": "HOT",
+            "risk_level": "HIGH",
+            "risk_direction": "LOWER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMinNetRR",
+              "fa": "InpMinNetRR"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 2,
+            "maximum": 3,
+            "multipleOf": 0.1
+          },
+          "InpAtrPeriod": {
+            "key": "InpAtrPeriod",
+            "type": "integer",
+            "default": 14,
+            "min": 5,
+            "max": 50,
+            "step": 1,
+            "group": "signals",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpAtrPeriod",
+              "fa": "InpAtrPeriod"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 5,
+            "maximum": 50,
+            "multipleOf": 1
+          },
+          "InpEmaPeriod": {
+            "key": "InpEmaPeriod",
+            "type": "integer",
+            "default": 200,
+            "min": 50,
+            "max": 400,
+            "step": 10,
+            "group": "signals",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpEmaPeriod",
+              "fa": "InpEmaPeriod"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 50,
+            "maximum": 400,
+            "multipleOf": 10
+          },
+          "InpRsiPeriod": {
+            "key": "InpRsiPeriod",
+            "type": "integer",
+            "default": 14,
+            "min": 5,
+            "max": 30,
+            "step": 1,
+            "group": "signals",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpRsiPeriod",
+              "fa": "InpRsiPeriod"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 5,
+            "maximum": 30,
+            "multipleOf": 1
+          },
+          "InpRsiUpper": {
+            "key": "InpRsiUpper",
+            "type": "integer",
+            "default": 75,
+            "min": 55,
+            "max": 90,
+            "step": 1,
+            "group": "signals",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpRsiUpper",
+              "fa": "InpRsiUpper"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 55,
+            "maximum": 90,
+            "multipleOf": 1
+          },
+          "InpRsiLower": {
+            "key": "InpRsiLower",
+            "type": "integer",
+            "default": 25,
+            "min": 10,
+            "max": 45,
+            "step": 1,
+            "group": "signals",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpRsiLower",
+              "fa": "InpRsiLower"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 10,
+            "maximum": 45,
+            "multipleOf": 1
+          },
+          "InpAdxMin": {
+            "key": "InpAdxMin",
+            "type": "integer",
+            "default": 20,
+            "min": 10,
+            "max": 40,
+            "step": 1,
+            "group": "signals",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpAdxMin",
+              "fa": "InpAdxMin"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 10,
+            "maximum": 40,
+            "multipleOf": 1
+          },
+          "InpSwingLeft": {
+            "key": "InpSwingLeft",
+            "type": "integer",
+            "default": 2,
+            "min": 1,
+            "max": 10,
+            "step": 1,
+            "group": "signals",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpSwingLeft",
+              "fa": "InpSwingLeft"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 10,
+            "multipleOf": 1
+          },
+          "InpSwingRight": {
+            "key": "InpSwingRight",
+            "type": "integer",
+            "default": 2,
+            "min": 1,
+            "max": 10,
+            "step": 1,
+            "group": "signals",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpSwingRight",
+              "fa": "InpSwingRight"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 10,
+            "multipleOf": 1
+          },
+          "InpReversalEnabled": {
+            "key": "InpReversalEnabled",
+            "type": "boolean",
+            "default": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpReversalEnabled",
+              "fa": "InpReversalEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpContinuationEnabled": {
+            "key": "InpContinuationEnabled",
+            "type": "boolean",
+            "default": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpContinuationEnabled",
+              "fa": "InpContinuationEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpSweepAtr": {
+            "key": "InpSweepAtr",
+            "type": "number",
+            "default": 0.15,
+            "min": 0.05,
+            "max": 1,
+            "step": 0.05,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpSweepAtr",
+              "fa": "InpSweepAtr"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.05,
+            "maximum": 1,
+            "multipleOf": 0.05
+          },
+          "InpSweepConfirmBars": {
+            "key": "InpSweepConfirmBars",
+            "type": "integer",
+            "default": 3,
+            "min": 1,
+            "max": 3,
+            "step": 1,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpSweepConfirmBars",
+              "fa": "InpSweepConfirmBars"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 3,
+            "multipleOf": 1
+          },
+          "InpDisplacementAtr": {
+            "key": "InpDisplacementAtr",
+            "type": "number",
+            "default": 0.8,
+            "min": 0.5,
+            "max": 2,
+            "step": 0.1,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpDisplacementAtr",
+              "fa": "InpDisplacementAtr"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.5,
+            "maximum": 2,
+            "multipleOf": 0.1
+          },
+          "InpBodyRatio": {
+            "key": "InpBodyRatio",
+            "type": "number",
+            "default": 0.6,
+            "min": 0.5,
+            "max": 0.9,
+            "step": 0.05,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpBodyRatio",
+              "fa": "InpBodyRatio"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.5,
+            "maximum": 0.9,
+            "multipleOf": 0.05
+          },
+          "InpRetestMinBars": {
+            "key": "InpRetestMinBars",
+            "type": "integer",
+            "default": 3,
+            "min": 1,
+            "max": 5,
+            "step": 1,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpRetestMinBars",
+              "fa": "InpRetestMinBars"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 5,
+            "multipleOf": 1
+          },
+          "InpRetestMaxBars": {
+            "key": "InpRetestMaxBars",
+            "type": "integer",
+            "default": 10,
+            "min": 5,
+            "max": 20,
+            "step": 1,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpRetestMaxBars",
+              "fa": "InpRetestMaxBars"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 5,
+            "maximum": 20,
+            "multipleOf": 1
+          },
+          "InpZoneWidthAtr": {
+            "key": "InpZoneWidthAtr",
+            "type": "number",
+            "default": 0.2,
+            "min": 0.1,
+            "max": 0.3,
+            "step": 0.05,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpZoneWidthAtr",
+              "fa": "InpZoneWidthAtr"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.1,
+            "maximum": 0.3,
+            "multipleOf": 0.05
+          },
+          "InpMaxLevelTouches": {
+            "key": "InpMaxLevelTouches",
+            "type": "integer",
+            "default": 3,
+            "min": 1,
+            "max": 10,
+            "step": 1,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMaxLevelTouches",
+              "fa": "InpMaxLevelTouches"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 10,
+            "multipleOf": 1
+          },
+          "InpMaxLevelAgeBars": {
+            "key": "InpMaxLevelAgeBars",
+            "type": "integer",
+            "default": 96,
+            "min": 4,
+            "max": 480,
+            "step": 1,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMaxLevelAgeBars",
+              "fa": "InpMaxLevelAgeBars"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 4,
+            "maximum": 480,
+            "multipleOf": 1
+          },
+          "InpStopBufferAtr": {
+            "key": "InpStopBufferAtr",
+            "type": "number",
+            "default": 0.1,
+            "min": 0.05,
+            "max": 0.5,
+            "step": 0.05,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpStopBufferAtr",
+              "fa": "InpStopBufferAtr"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.05,
+            "maximum": 0.5,
+            "multipleOf": 0.05
+          },
+          "InpMinStopAtr": {
+            "key": "InpMinStopAtr",
+            "type": "number",
+            "default": 0.3,
+            "min": 0.1,
+            "max": 1,
+            "step": 0.1,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMinStopAtr",
+              "fa": "InpMinStopAtr"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.1,
+            "maximum": 1,
+            "multipleOf": 0.1
+          },
+          "InpMaxStopAtr": {
+            "key": "InpMaxStopAtr",
+            "type": "number",
+            "default": 3.0,
+            "min": 1,
+            "max": 5,
+            "step": 0.1,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMaxStopAtr",
+              "fa": "InpMaxStopAtr"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 5,
+            "multipleOf": 0.1
+          },
+          "InpMaxSignalRangeAtr": {
+            "key": "InpMaxSignalRangeAtr",
+            "type": "number",
+            "default": 2.5,
+            "min": 1,
+            "max": 4,
+            "step": 0.1,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMaxSignalRangeAtr",
+              "fa": "InpMaxSignalRangeAtr"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 4,
+            "multipleOf": 0.1
+          },
+          "InpMaxAdrFraction": {
+            "key": "InpMaxAdrFraction",
+            "type": "number",
+            "default": 0.8,
+            "min": 0.3,
+            "max": 1,
+            "step": 0.05,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMaxAdrFraction",
+              "fa": "InpMaxAdrFraction"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 0.3,
+            "maximum": 1,
+            "multipleOf": 0.05
+          },
+          "InpCooldownAfterSlBars": {
+            "key": "InpCooldownAfterSlBars",
+            "type": "integer",
+            "default": 4,
+            "min": 1,
+            "max": 24,
+            "step": 1,
+            "group": "setups",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "LOWER_IS_LOOSER",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpCooldownAfterSlBars",
+              "fa": "InpCooldownAfterSlBars"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 24,
+            "multipleOf": 1
+          },
+          "InpLogFvg": {
+            "key": "InpLogFvg",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "experimental",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpLogFvg",
+              "fa": "InpLogFvg"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpLogOrderBlock": {
+            "key": "InpLogOrderBlock",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "experimental",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpLogOrderBlock",
+              "fa": "InpLogOrderBlock"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpLogCandlePatterns": {
+            "key": "InpLogCandlePatterns",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "experimental",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpLogCandlePatterns",
+              "fa": "InpLogCandlePatterns"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpUseDxyFeature": {
+            "key": "InpUseDxyFeature",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "experimental",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpUseDxyFeature",
+              "fa": "InpUseDxyFeature"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpBridgeMode": {
+            "key": "InpBridgeMode",
+            "type": "string",
+            "default": "FILE",
+            "min": null,
+            "max": null,
+            "step": null,
+            "enum": [
+              "OFF",
+              "FILE",
+              "HTTP_LOCAL"
+            ],
+            "group": "bridge",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpBridgeMode",
+              "fa": "InpBridgeMode"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "InpBridgeFailPolicy": {
+            "key": "InpBridgeFailPolicy",
+            "type": "string",
+            "default": "CONTINUE_WITHOUT",
+            "min": null,
+            "max": null,
+            "step": null,
+            "enum": [
+              "CONTINUE_WITHOUT",
+              "BLOCK_NEW_ENTRIES"
+            ],
+            "group": "bridge",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpBridgeFailPolicy",
+              "fa": "InpBridgeFailPolicy"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "InpConfigSource": {
+            "key": "InpConfigSource",
+            "type": "string",
+            "default": "INPUTS",
+            "min": null,
+            "max": null,
+            "step": null,
+            "enum": [
+              "INPUTS",
+              "FILE"
+            ],
+            "group": "bridge",
+            "apply": "COLD",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": true,
+            "label_i18n": {
+              "en": "InpConfigSource",
+              "fa": "InpConfigSource"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "InpTimerSeconds": {
+            "key": "InpTimerSeconds",
+            "type": "integer",
+            "default": 2,
+            "min": 1,
+            "max": 10,
+            "step": 1,
+            "group": "bridge",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpTimerSeconds",
+              "fa": "InpTimerSeconds"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            },
+            "minimum": 1,
+            "maximum": 10,
+            "multipleOf": 1
+          },
+          "InpAlertEnabled": {
+            "key": "InpAlertEnabled",
+            "type": "boolean",
+            "default": true,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "notifications",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpAlertEnabled",
+              "fa": "InpAlertEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpPushEnabled": {
+            "key": "InpPushEnabled",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "notifications",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpPushEnabled",
+              "fa": "InpPushEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpEmailEnabled": {
+            "key": "InpEmailEnabled",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "notifications",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpEmailEnabled",
+              "fa": "InpEmailEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpTelegramEnabled": {
+            "key": "InpTelegramEnabled",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "notifications",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpTelegramEnabled",
+              "fa": "InpTelegramEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpDebugDeterminism": {
+            "key": "InpDebugDeterminism",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "experimental",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpDebugDeterminism",
+              "fa": "InpDebugDeterminism"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          },
+          "InpMlEnabled": {
+            "key": "InpMlEnabled",
+            "type": "boolean",
+            "default": false,
+            "min": null,
+            "max": null,
+            "step": null,
+            "group": "experimental",
+            "apply": "HOT",
+            "risk_level": "MEDIUM",
+            "risk_direction": "NONE",
+            "mt5_only": false,
+            "label_i18n": {
+              "en": "InpMlEnabled",
+              "fa": "InpMlEnabled"
+            },
+            "help_i18n": {
+              "en": "Experimental input; validate on Demo/Forward data.",
+              "fa": "ورودی آزمایشی؛ پیش از LIVE با Demo و Forward بررسی شود."
+            }
+          }
+        },
+        "x-policy": {
+          "net_rr": "COST_ADJUSTED_MINIMUM",
+          "min_net_rr": 2,
+          "live_default": false,
+          "loosening": "SECOND_CONFIRMATION_NEXT_DAY"
+        }
+      }
+    }
+  }
+}

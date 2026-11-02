@@ -27,7 +27,7 @@ function SettingsEditor({ initial }: {
     const [baseVersion, setBaseVersion] = useState(initial.version);
     const frozen = ['VALIDATING', 'CONFIRMING_LOOSEN', 'REVIEWING_DIFF', 'SUBMITTING', 'AWAITING_ACK', 'TIMEOUT'].includes(phase);
     function edit(key: string, value: unknown) { if (!draft)
-        return; setDraft({ ...draft, [key]: value }); setReview(undefined); setPhrase(''); setError(''); dispatch({ type: 'EDIT' }); }
+        return; requestKey.current = crypto.randomUUID(); setAck(undefined); setDraft({ ...draft, [key]: value }); setReview(undefined); setPhrase(''); setError(''); dispatch({ type: 'EDIT' }); }
     async function validate() { if (!draft)
         return; const invalid = validateValues(draft); if (invalid.length) {
         setError('Invalid settings: ' + invalid.join(', '));
@@ -50,8 +50,10 @@ function SettingsEditor({ initial }: {
         const result = await awaitAck(pending);
         setAck(result);
         dispatch(result.status === 'APPLIED' || result.status === 'REJECTED' ? { type: 'ACK', status: result.status } : { type: 'TIMEOUT' });
-        if (result.status === 'APPLIED')
+        if (result.status === 'APPLIED') {
+            if (result.version !== null) setBaseVersion(result.version);
             await qc.invalidateQueries();
+        }
     }
     catch (e) {
         setError(String(e));
@@ -68,6 +70,10 @@ function SettingsEditor({ initial }: {
         setAck(result);
         if (result.status === 'APPLIED' || result.status === 'REJECTED')
             dispatch({ type: 'ACK', status: result.status });
+        if (result.status === 'APPLIED') {
+            if (result.version !== null) setBaseVersion(result.version);
+            await qc.invalidateQueries();
+        }
     }
     catch (e) {
         setError(String(e));
@@ -82,6 +88,8 @@ function SettingsEditor({ initial }: {
         if (!row)
             throw Error('No rollback snapshot available');
         const r = await api.rollback(row.id);
+        requestKey.current = crypto.randomUUID();
+        setAck(undefined);
         setDraft(r.values);
         setBaseVersion(r.base_version);
         dispatch({ type: 'EDIT' });

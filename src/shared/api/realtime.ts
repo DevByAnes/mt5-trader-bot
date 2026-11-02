@@ -1,4 +1,4 @@
-import type { Models } from './client';
+import { api, type Models } from './client';
 export type ConnectionState = {
     status: 'connecting' | 'online' | 'offline' | 'stale';
     attempt: number;
@@ -14,12 +14,20 @@ export type RealtimeEvent = {
 export function connectRealtime(onEvent: (e: RealtimeEvent) => void, onState: (s: ConnectionState) => void, onSnapshot: () => void): () => void {
     let socket: WebSocket | undefined, timer: ReturnType<typeof setTimeout> | undefined;
     let stopped = false, attempt = 0, lastSeq: number | undefined, lastSeen = Date.now(), healthStale = true;
+    const retry = () => {
+        if (stopped) return;
+        attempt++;
+        onState({ status: 'offline', attempt, gap: false });
+        timer = setTimeout(connect, Math.min(30000, 1000 * 2 ** Math.min(attempt - 1, 5)) + Math.random() * 300);
+    };
     const connect = () => {
         if (stopped)
             return;
         onState({ status: 'connecting', attempt, gap: false });
+        const open = (ticket?: string) => {
+        if (stopped) return;
         socket = new WebSocket(import.meta.env.VITE_WS_URL ?? 'ws://127.0.0.1:8765/ws');
-        socket.onopen = () => { attempt = 0; lastSeq = undefined; lastSeen = Date.now(); onSnapshot(); };
+        socket.onopen = () => { attempt = 0; lastSeq = undefined; lastSeen = Date.now(); healthStale = true; if (ticket) socket?.send(JSON.stringify({type:'authenticate',ticket})); onSnapshot(); };
         socket.onmessage = ({ data }) => { try {
             const e = JSON.parse(String(data)) as RealtimeEvent;
             if (!Number.isSafeInteger(e.seq) || e.seq < 1 || !Number.isFinite(Date.parse(e.server_time_utc)) || !['ea_state', 'position', 'signal', 'risk_mode', 'log', 'command_ack', 'config_ack', 'heartbeat'].includes(e.type))
@@ -39,9 +47,11 @@ export function connectRealtime(onEvent: (e: RealtimeEvent) => void, onState: (s
         catch {
             onSnapshot();
         } };
-        socket.onclose = () => { if (stopped)
-            return; attempt++; onState({ status: 'offline', attempt, gap: false }); timer = setTimeout(connect, Math.min(30000, 1000 * 2 ** Math.min(attempt - 1, 5)) + Math.random() * 300); };
+        socket.onclose = retry;
         socket.onerror = () => socket?.close();
+        };
+        if (import.meta.env.DEV && import.meta.env.VITE_USE_MOCKS !== 'false') open();
+        else void api.socketTicket().then(result=>open(result.ticket)).catch(retry);
     };
     const watchdog = setInterval(() => { if (socket?.readyState === WebSocket.OPEN && Date.now() - lastSeen > 6000) {
         onState({ status: 'stale', attempt, gap: false });

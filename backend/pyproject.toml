@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "aurum-backend"
 version = "0.1.0"
-description = "B1 local contract fixture server; no trading execution"
+description = "Local signed FILE bridge and offline analytics; no trading execution"
 requires-python = ">=3.12,<3.16"
 dependencies = [
   "fastapi==0.162.0",
@@ -15,11 +15,20 @@ dependencies = [
   "jsonschema>=4.26,<5",
   "referencing>=0.37,<0.40",
   "anyio>=4.16.0",
+  "numpy==2.5.4",
+  "pyarrow==26.0.0",
+  "keyring==25.7.0",
+  "tzdata==2026.6",
 ]
 
 [project.scripts]
 aurum-backend = "aurum_backend.main:run"
 aurum-lint = "tools.lint:main"
+
+[project.optional-dependencies]
+mt5 = [
+    "metatrader5==5.0.6231 ; sys_platform == 'win32'",
+]
 
 [dependency-groups]
 dev = [
@@ -56,6 +65,14 @@ python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
 files = ["src", "tools", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["pyarrow", "pyarrow.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["MetaTrader5"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

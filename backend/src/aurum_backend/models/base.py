@@ -8,7 +8,7 @@ from typing import Any
 from jsonschema import Draft202012Validator, FormatChecker, ValidationError, validators
 from pydantic import BaseModel, model_validator
 
-from aurum_backend.core.resources import EVENTS, OPENAPI, SETTINGS
+from aurum_backend.core.resources import EVENTS, OPENAPI, SETTINGS, SETTINGS_V2
 
 
 def multiple_of(
@@ -41,6 +41,8 @@ def validate_schema(name: str, value: Any) -> None:
         raise ValueError("Nonfinite JSON value")
     if name == "SettingsMetadataValues":
         schema: Any = SETTINGS
+    elif name == "EASettings":
+        schema = SETTINGS_V2
     elif name == "Event":
         # Resolve local event references without any network fetch or changed frozen file.
         def resolve(node: Any) -> Any:
@@ -65,7 +67,10 @@ class SchemaModel(BaseModel):
     @classmethod
     def enforce_source(cls, value: Any) -> Any:
         components: Any = OPENAPI["components"]
-        if cls.__name__ in components["schemas"] or cls.__name__ == "SettingsMetadataValues":
+        if cls.__name__ in components["schemas"] or cls.__name__ in {
+            "SettingsMetadataValues",
+            "EASettings",
+        }:
             if isinstance(value, BaseModel):
                 value = value.model_dump(mode="json", exclude_unset=True)
             try:

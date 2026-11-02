@@ -20,6 +20,7 @@ def read_object(path: Path) -> dict[str, JsonValue]:
 
 OPENAPI = read_object(SCHEMA / "openapi.yaml")
 SETTINGS = read_object(SCHEMA / "settings.schema.json")
+SETTINGS_V2 = read_object(SCHEMA / "settings.v2.schema.json")
 EVENTS = read_object(SCHEMA / "events.json")
 
 

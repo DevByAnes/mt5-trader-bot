@@ -1,4 +1,4 @@
-"""B1 application factory and loopback-only launcher."""
+"""Fixture/FILE application factory and loopback-only launcher."""
 
 import asyncio
 import sys
@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 
-from aurum_backend.api import dev, routes
+from aurum_backend.api import dev, routes, session
 from aurum_backend.api.envelope import error_response
 from aurum_backend.api.errors import ApiFault
 from aurum_backend.core.config import Config
@@ -22,16 +22,18 @@ from aurum_backend.fixtures.state import FixtureState
 from aurum_backend.realtime.stream import pump
 from aurum_backend.realtime.stream import router as realtime_router
 from aurum_backend.security.access import SecurityMiddleware
+from aurum_backend.security.tickets import Tickets
+from aurum_backend.services.file_state import FileState
 
 
 def create_app(config: Config | None = None) -> FastAPI:
     settings = config or Config.from_env()
-    state = FixtureState(settings)
+    state = FileState(settings) if settings.backend_mode == "file" else FixtureState(settings)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        task = asyncio.create_task(pump(state), name="fixture-pump")
-        log_event("fixture_server_started")
+        task = asyncio.create_task(pump(state), name="bridge-pump")
+        log_event("backend_started")
         try:
             yield
         finally:
@@ -39,19 +41,24 @@ def create_app(config: Config | None = None) -> FastAPI:
             with suppress(asyncio.CancelledError):
                 await task
             state.overloaded.update(state.subscribers)
-            log_event("fixture_server_stopped")
+            if isinstance(state, FileState):
+                state.close()
+            log_event("backend_stopped")
 
     app = FastAPI(
-        title="Aurum B1 fixture server",
+        title="Aurum local bridge",
         lifespan=lifespan,
         openapi_url=None,
         docs_url=None,
         redoc_url=None,
     )
     app.state.fixture_state = state
+    app.state.config = settings
+    app.state.socket_tickets = Tickets()
     app.include_router(routes.router)
     app.include_router(realtime_router)
-    if settings.environment == "development":
+    app.include_router(session.router)
+    if settings.environment == "development" and settings.backend_mode == "fixture":
         app.include_router(dev.router)
 
     @app.exception_handler(ApiFault)

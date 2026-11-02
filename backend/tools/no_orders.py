@@ -29,6 +29,7 @@ PATTERN = re.compile(
     r"(?i)(?:order[_\s]*(?:send|check[_\s]*send|modify|check)|"
     r"positions?[_\s]*(?:close|modify)|(?:send|place|submit|execute)[_\s]*order)"
 )
+READ_ONLY_SDK_NAMES = {"initialize", "shutdown", "copy_rates_range", "TIMEFRAME_M15"}
 
 
 def violations(path: Path) -> list[str]:
@@ -55,7 +56,12 @@ def violations(path: Path) -> list[str]:
             "metatrader5",
             "ccxt",
         }:
-            found.append(f"{path.name}:{node.lineno}: trading integration import")
+            isolated_reader = path.name == "mt5_readonly.py" and path.parent.name == "data"
+            explicit_reads = node.module == "MetaTrader5" and all(
+                n.name in READ_ONLY_SDK_NAMES and n.asname is None for n in node.names
+            )
+            if not isolated_reader or not explicit_reads:
+                found.append(f"{path.name}:{node.lineno}: trading integration import")
     return found
 
 

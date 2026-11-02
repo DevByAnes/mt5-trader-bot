@@ -1,4 +1,6 @@
 import type { components, paths } from './generated';
+import type { components as SessionComponents } from './session-generated';
+import { queryClient, type TransportMetadata } from '../query';
 export type Models = components['schemas'];
 export type ApiError = Models['Error'];
 export type Status = Models['Status'];
@@ -37,14 +39,16 @@ export function setSessionToken(value: string) { sessionToken = value; }
 export class ApiClientError extends Error {
     constructor(public readonly status: number, public readonly detail: ApiError | null) { super(detail?.message ?? `HTTP ${status}`); }
 }
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, apiBase = base): Promise<T> {
     const headers = new Headers(init?.headers);
     headers.set('Accept', 'application/json');
     if (init?.body)
         headers.set('Content-Type', 'application/json');
     if (sessionToken)
         headers.set('Authorization', `Bearer ${sessionToken}`);
-    const response = await fetch(base + path, { ...init, headers, signal: AbortSignal.timeout(5000) });
+    const response = await fetch(apiBase + path, { ...init, headers, signal: AbortSignal.timeout(5000) });
+    const mode = response.headers.get('X-Aurum-Mode');
+    if (mode === 'fixture' || mode === 'file') queryClient.setQueryData<TransportMetadata>(['transport-metadata'], {mode});
     const body = await response.json();
     if (!response.ok || body.error)
         throw new ApiClientError(response.status, body.error);
@@ -55,6 +59,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 const get = <P extends GetPath>(path: P) => request<GetData<P>>(path);
 const post = <T>(path: string, body: unknown, key?: string) => request<T>(path, { method: 'POST', body: JSON.stringify(body), ...(key ? { headers: { 'Idempotency-Key': key } } : {}) });
 export const api = { status: () => get('/status'), eaState: () => get('/ea/state'), positions: () => get('/positions'), signals: () => get('/signals'), chart: () => get('/chart'), risk: () => get('/risk/daily'), telemetry: () => get('/telemetry'), settings: () => get('/settings'),
+    socketTicket: () => request<SessionComponents['schemas']['SocketTicket']>('/session/ws-ticket', { method: 'POST' }, base.replace(/\/v1\/?$/, '/v2')),
     validateSettings: (body: Models['ApplyRequest']) => post<Models['Diff']>('/settings/validate', body),
     applySettings: (base_version: number, values: SettingsValues, key: string = crypto.randomUUID()) => post<Ack>('/settings/apply', { base_version, values }, key),
     command: (command: Command, positionId?: string, key: string = crypto.randomUUID()) => post<Ack>('/commands/' + command, positionId ? { position_id: positionId } : {}, key),

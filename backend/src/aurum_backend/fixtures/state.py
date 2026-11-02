@@ -19,6 +19,7 @@ from aurum_backend.core.time import utc_now
 from aurum_backend.fixtures.loader import FixtureLoader
 from aurum_backend.models.generated import ApplyRequest
 from aurum_backend.models.generated_settings import SettingsMetadataValues
+from aurum_backend.realtime.hub import EventHub
 
 READS = {
     "/status": "Status",
@@ -50,8 +51,9 @@ class Operation:
     values: dict[str, Any] | None = None
 
 
-class FixtureState:
+class FixtureState(EventHub):
     def __init__(self, config: Config) -> None:
+        super().__init__(config)
         self.config = config
         self.loader = FixtureLoader()
         self.lock = asyncio.Lock()
@@ -83,24 +85,6 @@ class FixtureState:
         self.protected.clear()
         self.closed.clear()
         self.overloaded.update(self.subscribers)
-
-    def subscribe(self) -> asyncio.Queue[tuple[str, Any]]:
-        if len(self.subscribers) >= self.config.max_clients:
-            raise ApiFault("UNAVAILABLE", "Stream capacity reached", 503)
-        queue: asyncio.Queue[tuple[str, Any]] = asyncio.Queue(self.config.queue_size)
-        self.subscribers.add(queue)
-        return queue
-
-    def unsubscribe(self, queue: asyncio.Queue[tuple[str, Any]]) -> None:
-        self.subscribers.discard(queue)
-        self.overloaded.discard(queue)
-
-    def publish(self, kind: str, payload: Any) -> None:
-        for queue in self.subscribers:
-            try:
-                queue.put_nowait((kind, deepcopy(payload)))
-            except asyncio.QueueFull:
-                self.overloaded.add(queue)
 
     def available(self) -> None:
         if self.scenario in {"python-offline", "bridge-offline"}:
