@@ -18,6 +18,11 @@ SOURCES = {
 }
 
 
+def schema_digest(path: Path) -> str:
+    # Git checkout line endings differ by platform; fingerprint the logical UTF-8 text.
+    return hashlib.sha256(path.read_text(encoding="utf-8").encode("utf-8")).hexdigest()
+
+
 def outputs() -> dict[str, str]:
     result: dict[str, str] = {}
     for filename, (source, kind) in SOURCES.items():
@@ -80,7 +85,7 @@ def outputs() -> dict[str, str]:
             )
             result[filename] = output.read_text(encoding="utf-8")
     hashes = {
-        p: hashlib.sha256((ROOT / "schema" / p).read_bytes()).hexdigest()
+        p: schema_digest(ROOT / "schema" / p)
         for p in [
             "openapi.yaml",
             "settings.schema.json",

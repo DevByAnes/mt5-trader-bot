@@ -18,7 +18,7 @@
 
 | بررسی | نتیجه |
 |---|---|
-| `uv run pytest -q` | ۱۶۵ passed؛ warningها خطا محسوب می‌شوند |
+| `uv run pytest -q` | ۱۶۶ passed؛ warningها خطا محسوب می‌شوند |
 | `uv run aurum-lint` | Ruff و guard عدم ارسال سفارش پاس |
 | `uv run mypy` | بدون خطا، ۸۲ فایل؛ بررسی `--platform linux` و `--platform win32` نیز پاس |
 | `uv run python -m tools.gen_models --check` | خروجی مدل‌ها مطابق Schema |

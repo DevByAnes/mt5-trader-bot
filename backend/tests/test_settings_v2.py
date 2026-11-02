@@ -1,10 +1,12 @@
 import json
+from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
 from aurum_backend.models.generated_settings_v2 import EASettings
 from aurum_backend.services.profiles import defaults, export_profile, export_set, import_profile
+from tools.gen_models import schema_digest
 from tools.shared_settings import outputs
 
 
@@ -13,6 +15,15 @@ def test_generated_native_and_typescript_input_sources_match() -> None:
         assert path.read_text(encoding="utf-8") == content
     model = EASettings.model_validate(defaults())
     assert len(model.model_dump()) >= 80
+
+
+def test_schema_fingerprint_is_stable_across_git_line_endings(tmp_path: Path) -> None:
+    lf, crlf = tmp_path / "lf.json", tmp_path / "crlf.json"
+    lf.write_bytes(b'{\n  "version": 2\n}\n')
+    crlf.write_bytes(b'{\r\n  "version": 2\r\n}\r\n')
+    assert schema_digest(lf) == schema_digest(crlf)
+    crlf.write_bytes(b'{\r\n  "version": 3\r\n}\r\n')
+    assert schema_digest(lf) != schema_digest(crlf)
 
 
 def test_live_and_permissions_are_disabled_by_default() -> None:
