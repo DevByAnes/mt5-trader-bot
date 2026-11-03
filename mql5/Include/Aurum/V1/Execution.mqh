@@ -104,7 +104,7 @@ class V1Execution {
   long filling=SymbolInfoInteger(TradingSymbol,SYMBOL_FILLING_MODE);
   req.type_filling=(filling&SYMBOL_FILLING_FOK)!=0?ORDER_FILLING_FOK:((filling&SYMBOL_FILLING_IOC)!=0?ORDER_FILLING_IOC:ORDER_FILLING_RETURN);
   req.comment="A1:"+StringSubstr(V1HashText(s.setup_id),0,24);
-  if(!OrderCheck(req,check)||check.retcode!=TRADE_RETCODE_DONE){s.reason="ORDER_CHECK:"+(string)check.retcode;return false;}
+  if(!OrderCheck(req,check)||(check.retcode!=0&&check.retcode!=TRADE_RETCODE_DONE)){s.reason="ORDER_CHECK:"+(string)check.retcode;return false;}
   if(!OrderSend(req,result)){s.reason="ORDER_SEND_UNKNOWN:"+(string)result.retcode;return false;}
   if(result.retcode!=TRADE_RETCODE_DONE&&result.retcode!=TRADE_RETCODE_DONE_PARTIAL){s.reason="ORDER_OUTCOME:"+(string)result.retcode;return false;}
   s.reason="ORDER_FILLED:"+(string)result.deal;return true;

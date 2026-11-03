@@ -46,10 +46,26 @@ class V1BrokerClock {
  int Offset(datetime server){datetime utc;if(!Convert(server,utc))return 100000;return (int)((server-utc)/60);}
 };
 class V1News {
- private: datetime start,finish,events[];bool valid;
+ private: datetime start,finish,events[],refreshed;bool valid;
  datetime ParseUTC(string s){if(StringLen(s)!=20||StringSubstr(s,19)!="Z")return 0;StringReplace(s,"T"," ");StringReplace(s,"Z","");StringReplace(s,"-",".");return StringToTime(s);}
  public:
- V1News(){valid=false;start=0;finish=0;}
+ V1News(){valid=false;start=0;finish=0;refreshed=0;}
+ bool RefreshNative(datetime utc,int offset,int before,int after) {
+  if(valid&&utc-refreshed<300&&utc-after*60>=start&&utc+before*60<finish)return true;
+  datetime first=utc-86400,last=utc+2*86400;MqlCalendarValue values[];ResetLastError();
+  int count=CalendarValueHistory(values,first+offset*60,last+offset*60,NULL,"USD");
+  if(count<0||GetLastError()!=0){valid=false;return false;}
+  datetime updated[];
+  for(int i=0;i<count;i++) {
+   MqlCalendarEvent event;if(!CalendarEventById(values[i].event_id,event)){valid=false;return false;}
+   if(event.importance!=CALENDAR_IMPORTANCE_HIGH)continue;
+   datetime at=values[i].time-offset*60;
+   // Important events with unknown/all-day timing block their entire calendar day.
+   if(event.time_mode!=CALENDAR_TIMEMODE_DATETIME){valid=false;return false;}
+   int n=ArraySize(updated);ArrayResize(updated,n+1);updated[n]=at;
+  }
+  ArrayCopy(events,updated);ArrayResize(events,ArraySize(updated));start=first;finish=last;refreshed=utc;valid=true;return true;
+ }
  bool Load(string filename) {
   valid=false;ArrayResize(events,0);int f=FileOpen(filename,FILE_READ|FILE_CSV|FILE_ANSI|FILE_COMMON,',',CP_UTF8);if(f==INVALID_HANDLE)return false;
   bool ok=FileReadString(f)=="AURUM_NEWS_V1"&&FileReadString(f)=="UTC";start=ParseUTC(FileReadString(f));finish=ParseUTC(FileReadString(f));

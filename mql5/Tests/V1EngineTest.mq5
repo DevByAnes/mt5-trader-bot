@@ -4,11 +4,23 @@
 #include "../Include/Aurum/V1/Clock.mqh"
 #include "../Include/Aurum/V1/Crypto.mqh"
 #include "../Include/Aurum/V1/Storage.mqh"
+#include "../Include/Aurum/V1/Bridge.mqh"
 #include "Result.mqh"
 int checks=0,failures=0;string failed="";
 void Check(bool value,string name){checks++;if(!value){failures++;failed+=name+";";Print("FAIL ",name);}}
 void Bar(MqlRates &r,datetime time,double o,double h,double l,double c){ZeroMemory(r);r.time=time;r.open=o;r.high=h;r.low=l;r.close=c;}
 void OnStart(){
+ V1Execution settings_exec;settings_exec.risk_pct=.5;settings_exec.loss_pct=2;settings_exec.spread_max=4;settings_exec.mode=SIGNAL_ONLY;V1Bridge settings_bridge;V1Json settings_json;
+ Check(settings_json.Parse(settings_bridge.Settings(settings_exec))&&settings_json.Number(settings_json.Field(0,"values"),"maxSpread")==4,"actual training spread below legacy UI minimum is reported");
+ Check(V1DemoRolloverGap(D'2026.11.02 22:45',D'2026.11.03 01:00',D'2026.11.03 00:15',60,true),"explicit Demo midnight exception");
+ Check(!V1DemoRolloverGap(D'2026.11.02 22:45',D'2026.11.03 01:00',D'2026.11.03 00:15',60,false),"rollover exception forbidden on real account");
+ Check(!V1DemoRolloverGap(D'2026.11.02 22:45',D'2026.11.03 01:00',D'2026.11.03 00:15',0,true),"strict default rejects rollover exception");
+ Check(!V1DemoRolloverGap(D'2026.11.03 10:00',D'2026.11.03 11:00',D'2026.11.03 10:15',60,true),"intraday missing candle blocked");
+ Check(!V1DemoRolloverGap(D'2026.11.02 22:45',D'2026.11.03 02:00',D'2026.11.03 01:00',60,true),"midnight exception has bounded end");
+ Check(!V1SessionContains(3600,0,0),"zero duration session is closed");
+ Check(V1SessionContains(3600,0,86400),"explicit full day session");
+ Check(V1SessionContains(3600,0,82800)&&!V1SessionContains(82800,0,82800),"session close exclusive");
+ Check(V1SessionContains(3600,79200,7200)&&!V1SessionContains(43200,79200,7200),"overnight session");
  V1Params p;V1Defaults(p);MqlRates r[];ArrayResize(r,12);
  for(int i=0;i<12;i++)Bar(r[i],D'2026.01.05 00:00'+i*900,10,11,9,10);
  Check(V1ValidBars(r,900),"valid bars");r[1].close=12;Check(!V1ValidBars(r,900),"invalid OHLC");r[1].close=10;

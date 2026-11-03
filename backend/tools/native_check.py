@@ -16,6 +16,7 @@ from aurum_backend.bridge.codec import SignedCodec, json_bytes
 from aurum_backend.bridge.files import AtomicFiles
 from aurum_backend.models.generated_settings_v2 import EASettings
 from aurum_backend.services.profiles import defaults
+from tools.key_pipe import start_key_pipe
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -154,7 +155,7 @@ def main() -> None:
     if decoded["body"]["status"] != "APPLIED":
         raise RuntimeError("Native-to-Python signature/schema interoperability failed")
     v1.pop("wire")
-    # Account-free kernel32 environment read only. Public test vector key, unique namespace;
+    # Account-free named-pipe handshake. Public test vector key, unique namespace;
     # no user terminal profile, credentials or operational Common folder are copied/modified.
     test_directory = "AurumNativeTests/" + uuid4().hex
     common = Path(os.environ["APPDATA"]) / "MetaQuotes/Terminal/Common/Files" / test_directory
@@ -235,13 +236,13 @@ def main() -> None:
         encoding="utf-16",
         newline="",
     )
+    start_key_pipe("0", "XAUUSD", 260110, bytes(range(32)))
     native_bridge = run_script(
         runtime,
         "V1BridgeTest",
         "aurum_v1_bridge_test.json",
         preset="bridge.set",
-        allow_dll=True,
-        environment={**os.environ, "AURUM_BRIDGE_KEY_HEX": bytes(range(32)).hex()},
+        allow_dll=False,
     )
     if native_bridge["failures"] or native_bridge["checks"] < 12:
         raise RuntimeError(f"Native bridge vectors failed: {native_bridge}")

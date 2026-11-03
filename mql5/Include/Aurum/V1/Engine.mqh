@@ -6,7 +6,7 @@
 class V1Engine {
  private:
  V1Params p;MqlRates bars[],h1[];double atr[];V1Swing swings[],hourly[];V1Level levels[];V1Break breaks[];V1Sweep sweeps[];
- datetime last_bar,now_utc;double last_atr,atr_ratio,day_range_ratio;int offset,lock_handle;bool data_ok,daily_ok;
+ datetime last_bar,now_utc,last_history_attempt;double last_atr,atr_ratio,day_range_ratio;int offset,lock_handle;bool data_ok,daily_ok;
  string last_reason,session,signal_items[],log_items[];double eq_history[],spread_history[],atr_history[];
  V1BrokerClock clock;V1News news;
  bool InSession(datetime utc) {return (LondonEnabled&&V1InSession(utc,"London",LondonStartMinute,LondonEndMinute))||(NewYorkEnabled&&V1InSession(utc,"New_York",NewYorkStartMinute,NewYorkEndMinute));}
@@ -36,18 +36,21 @@ class V1Engine {
  bool SessionOpenAt(datetime server) {
   MqlDateTime d;TimeToStruct(server,d);datetime from,to;int second=d.hour*3600+d.min*60+d.sec;
   for(uint k=0;k<20;k++) {
-   if(!SymbolInfoSessionTrade(TradingSymbol,(ENUM_DAY_OF_WEEK)d.day_of_week,k,from,to))break;
-   long first=(long)from,last=(long)to;if(first==last)return true;
-   if(last>first?(second>=first&&second<last):(second>=first||second<last))return true;
+   // Candle completeness follows quote availability, not the wider order-entry session.
+   if(!SymbolInfoSessionQuote(TradingSymbol,(ENUM_DAY_OF_WEEK)d.day_of_week,k,from,to))break;
+    if(V1SessionContains(second,(long)from,(long)to))return true;
   }return false;
  }
  bool Load(MqlRates &out[],ENUM_TIMEFRAMES tf,int count) {
-  MqlRates source[];if(CopyRates(TradingSymbol,tf,1,count,source)!=count)return false;
+  MqlRates source[];int received=CopyRates(TradingSymbol,tf,1,count,source);if(received!=count){Log("WARN","HISTORY_UNAVAILABLE:"+EnumToString(tf)+" received="+(string)received);return false;}
   int seconds=PeriodSeconds(tf);ArrayResize(out,count);
   for(int i=0;i<count;i++) {
-   out[i]=source[i];datetime utc;if(!clock.Convert(source[i].time,utc))return false;out[i].time=utc;
+   out[i]=source[i];datetime utc;if(!clock.Convert(source[i].time,utc)){Log("WARN","HISTORY_CLOCK_GAP:"+JTime(source[i].time));return false;}out[i].time=utc;
    if(utc+seconds>now_utc)return false;
-   if(i>0)for(datetime missing=source[i-1].time+seconds;missing<source[i].time;missing+=seconds)if(SessionOpenAt(missing))return false;
+   if(i>0)for(datetime missing=source[i-1].time+seconds;missing<source[i].time;missing+=seconds)if(SessionOpenAt(missing)){
+    if(V1DemoRolloverGap(source[i-1].time,source[i].time,missing,DemoRolloverGapMinutes,AccountInfoInteger(ACCOUNT_TRADE_MODE)==ACCOUNT_TRADE_MODE_DEMO))continue;
+    Log("WARN","HISTORY_MISSING_OPEN_SESSION_BAR:"+EnumToString(tf)+":"+JTime(missing));return false;
+   }
   }return V1ValidBars(out,seconds);
  }
  datetime WeekStart(datetime utc) {
@@ -84,7 +87,9 @@ class V1Engine {
  }
  string Spread(){MqlTick q;if(!SymbolInfoTick(TradingSymbol,q)||SymbolInfoDouble(TradingSymbol,SYMBOL_POINT)<=0)return "null";return JNum((q.ask-q.bid)/SymbolInfoDouble(TradingSymbol,SYMBOL_POINT));}
  string Gate() {
-  if(!data_ok||!daily_ok||!exec.storage_ok||!CostsKnown||exec.spread_max<=0||AtrRatioLow<=0||AtrRatioHigh<=AtrRatioLow)return "NO_SIGNAL_DATA_QUALITY";
+  if(!data_ok)return "NO_SIGNAL_DATA_QUALITY:HISTORY";
+  if(!daily_ok||!exec.storage_ok)return "NO_SIGNAL_DATA_QUALITY:ACCOUNT_OR_STORAGE";
+  if(!CostsKnown||exec.spread_max<=0||AtrRatioLow<=0||AtrRatioHigh<=AtrRatioLow)return "CALIBRATION_REQUIRED";
   if(exec.killed)return "KILL_SWITCH";
   if(RequirePythonHeartbeat&&!bridge.Heartbeat(now_utc))return "BRIDGE_OFFLINE";
   MqlTick q;if(!TerminalInfoInteger(TERMINAL_CONNECTED)||!exec.Quote(q,now_utc,offset))return "NO_SIGNAL_DATA_QUALITY";
@@ -176,16 +181,30 @@ class V1Engine {
   string health="{\"state\":\"healthy\",\"heartbeat_utc\":"+JQuote(JTime(now_utc))+",\"latency_ms\":null}",unknown="{\"state\":\"offline\",\"heartbeat_utc\":null,\"latency_ms\":null}";
   string status="{\"backend\":"+unknown+",\"ea\":"+health+",\"mt5\":"+(TerminalInfoInteger(TERMINAL_CONNECTED)?health:unknown)+",\"broker_offset_minutes\":"+(offset==100000?"null":(string)offset)+"}";
   string state="{\"mode\":"+JQuote(exec.mode==AUTO_EXECUTE?"AUTO_EXECUTE":"SIGNAL_ONLY")+",\"equity\":"+JNum(AccountInfoDouble(ACCOUNT_EQUITY))+",\"pnl_today\":"+(daily_ok?JNum(exec.pnl):"null")+",\"risk_active\":"+JBool(!exec.killed&&daily_ok&&!exec.DailyBlocked())+",\"risk_reason\":"+JQuote(last_reason)+",\"session\":"+JQuote(session)+",\"trend_h1\":"+(data_ok?JQuote(V1Structure(V1Trend(hourly,2147483647))):"null")+",\"trend_h4\":null,\"h1_strength\":null,\"h4_strength\":null,\"atr\":"+JNum(last_atr)+",\"spread\":"+Spread()+",\"trades_today\":"+(daily_ok?(string)exec.entries:"null")+",\"last_rejection\":"+JQuote(last_reason)+",\"live_prerequisites\":[{\"key\":\"demo_only\",\"ok\":false,\"reason\":\"Real-account LIVE disabled; AUTO_EXECUTE requires native Demo opt-in\"}]}";
+  string prerequisites="[{\"key\":\"demo_only\",\"ok\":"+JBool(AccountInfoInteger(ACCOUNT_TRADE_MODE)==ACCOUNT_TRADE_MODE_DEMO)+",\"reason\":\"Demo account required\"},"
+   "{\"key\":\"terminal_trade_allowed\",\"ok\":"+JBool((bool)TerminalInfoInteger(TERMINAL_TRADE_ALLOWED))+",\"reason\":\"MT5 Algo Trading permission\"},"
+   "{\"key\":\"native_auto_opt_in\",\"ok\":"+JBool(Mode==AUTO_EXECUTE&&ConfirmDemoAutoExecute)+",\"reason\":\"Explicit native AUTO_EXECUTE confirmation required\"},"
+   "{\"key\":\"history\",\"ok\":"+JBool(data_ok)+",\"reason\":\"Complete confirmed candle history required\"}]";
+  int prereq_at=StringFind(state,"\"live_prerequisites\":");
+  if(prereq_at>=0)state=StringSubstr(state,0,prereq_at)+"\"live_prerequisites\":"+prerequisites+"}";
   double amount=exec.start_equity*exec.loss_pct/100,remaining=MathMax(0,amount-exec.losses),profit=exec.start_equity*DailyProfitPercent/100;
   string risk=daily_ok?"{\"state\":"+JQuote(exec.killed||exec.DailyBlocked()?"STOPPED":"ACTIVE")+",\"reason\":"+(last_reason==""?"null":JQuote(last_reason))+",\"start_equity\":"+JNum(exec.start_equity)+",\"current_equity\":"+JNum(AccountInfoDouble(ACCOUNT_EQUITY))+",\"loss_limit_amount\":"+JNum(amount)+",\"loss_remaining\":"+JNum(remaining)+",\"loss_remaining_percent\":"+JNum(amount>0?remaining/amount*100:0)+",\"profit_target_amount\":"+(profit>0?JNum(profit):"null")+",\"profit_remaining\":"+(profit>0?JNum(MathMax(0,profit-exec.pnl)):"null")+",\"profit_remaining_percent\":"+(profit>0?JNum(MathMax(0,profit-exec.pnl)/profit*100):"null")+",\"trades_remaining\":"+(string)MathMax(0,MaxTradesPerDay-exec.entries)+",\"next_day_utc\":"+JQuote(JTime(exec.next_day))+"}":"null";
+  bool entry_blocked=exec.killed||!data_ok||!daily_ok||exec.DailyBlocked()||StringFind(last_reason,"NO_SIGNAL_DATA_QUALITY")==0||last_reason=="CALIBRATION_REQUIRED";
+  if(entry_blocked){StringReplace(state,"\"risk_active\":true","\"risk_active\":false");StringReplace(risk,"\"state\":\"ACTIVE\"","\"state\":\"STOPPED\"");}
+  // Publish the current gate; retain last_rejection as the historical decision.
+  string current_gate=Gate(),current_reason=JQuote(current_gate==""?"WAITING_NEXT_M15":current_gate);
+  StringReplace(state,"\"risk_reason\":"+JQuote(last_reason),"\"risk_reason\":"+current_reason);
+  StringReplace(risk,"\"reason\":"+(last_reason==""?"null":JQuote(last_reason)),"\"reason\":"+current_reason);
   state=StringSubstr(state,0,StringLen(state)-1)+",\"account_currency\":"+JQuote(AccountInfoString(ACCOUNT_CURRENCY))+"}";
   if(!daily_ok)risk="{\"state\":\"STOPPED\",\"reason\":"+JQuote(last_reason)+",\"start_equity\":null,\"current_equity\":"+JNum(AccountInfoDouble(ACCOUNT_EQUITY))+",\"loss_limit_amount\":null,\"loss_remaining\":null,\"loss_remaining_percent\":null,\"profit_target_amount\":null,\"profit_remaining\":null,\"profit_remaining_percent\":null,\"trades_remaining\":null,\"next_day_utc\":"+JQuote(JTime(V1NextDay(now_utc,TradingDayCity,TradingDayStartMinute)))+"}";
   string resources="{\"Status\":"+status+",\"EaState\":"+state+",\"Positions\":"+Positions()+",\"DailyRisk\":"+risk+",\"SettingsData\":"+bridge.Settings(exec)+",\"Signals\":{\"items\":"+Join(signal_items)+",\"next_cursor\":null,\"rejection_counts\":[]},\"Chart\":"+Chart()+",\"Telemetry\":{\"equity\":"+Numbers(eq_history)+",\"spread\":"+Numbers(spread_history)+",\"atr\":"+Numbers(atr_history)+"},\"Journal\":"+Journal()+",\"Validation\":null,\"Logs\":{\"items\":"+Join(log_items)+",\"next_cursor\":null}}";
+  // No validation results exist yet: an empty collection is not a bridge outage.
+  StringReplace(resources,"\"Validation\":null","\"Validation\":{\"items\":[],\"next_cursor\":null}");
   if(!bridge.State(resources,now_utc)){exec.storage_ok=false;Print("AURUM STATE_WRITE_FAILED");}
  }
  public:
  V1Execution exec;V1Bridge bridge;
- V1Engine(){last_bar=0;last_atr=EMPTY_VALUE;atr_ratio=EMPTY_VALUE;day_range_ratio=EMPTY_VALUE;data_ok=false;daily_ok=false;lock_handle=INVALID_HANDLE;offset=100000;}
+ V1Engine(){last_bar=0;last_history_attempt=0;last_atr=EMPTY_VALUE;atr_ratio=EMPTY_VALUE;day_range_ratio=EMPTY_VALUE;data_ok=false;daily_ok=false;lock_handle=INVALID_HANDLE;offset=100000;}
  bool Init() {
   if(!V1ValidateInputs()||!SymbolSelect(TradingSymbol,true))return false;
   if(AccountInfoInteger(ACCOUNT_TRADE_MODE)!=ACCOUNT_TRADE_MODE_DEMO){Print("AURUM DEMO_ACCOUNT_REQUIRED");return false;}
@@ -198,15 +217,16 @@ class V1Engine {
   if(!exec.Init(root)||!bridge.Init(root,exec))return false;
   now_utc=TimeGMT();
   if(!clock.Load(BrokerClockCsv))Log("WARN","BROKER_CLOCK_MISSING_OR_INVALID: "+BrokerClockCsv+"; retrying automatically every heartbeat");
-  if(!news.Load(NewsCsv))Log("WARN","NEWS_CALENDAR_MISSING_OR_INVALID: "+NewsCsv+"; entries blocked until valid coverage is supplied");
+  if((!NativeNewsEnabled||MQLInfoInteger(MQL_TESTER))&&!news.Load(NewsCsv))Log("WARN","NEWS_CALENDAR_MISSING_OR_INVALID: "+NewsCsv+"; entries blocked until valid coverage is supplied");
   Log("INFO","Aurum V1 initialized; ranking scores are uncalibrated; Demo only");
+  if(DemoRolloverGapMinutes>0)Log("WARN","UNVERIFIED_DEMO_ROLLOVER_OVERRIDE: server 00:00 + "+(string)DemoRolloverGapMinutes+" minutes; missing bars are not fabricated; not strict document validation");
   return EventSetTimer(HeartbeatSeconds);
  }
  void Stop(){EventKillTimer();if(lock_handle!=INVALID_HANDLE){FileClose(lock_handle);lock_handle=INVALID_HANDLE;}}
  void Pulse(bool timer) {
   // Retry before the fail-closed return; a missing file at startup must not latch
   // the engine offline forever. Historical broker offsets are never guessed.
-  if(timer){clock.Load(BrokerClockCsv);news.Load(NewsCsv);}
+  if(timer){clock.Load(BrokerClockCsv);if(!NativeNewsEnabled||MQLInfoInteger(MQL_TESTER))news.Load(NewsCsv);}
   datetime server=TimeTradeServer();offset=clock.Offset(server);
   if(offset==100000){
    now_utc=TimeGMT();session=SessionName(now_utc);data_ok=false;daily_ok=false;
@@ -221,11 +241,15 @@ class V1Engine {
    last_bar=0;last_reason="";Log("INFO","BROKER_CLOCK_RECOVERED; reloading closed-bar history");
   }
   now_utc=server-offset*60;session=SessionName(now_utc);
+  if(NativeNewsEnabled&&!MQLInfoInteger(MQL_TESTER))news.RefreshNative(now_utc,offset,NewsBeforeMinutes,NewsAfterMinutes);
   daily_ok=exec.Daily(now_utc,offset);
   // Independent position management runs even when news, history or Python are unavailable.
   exec.Manage(now_utc,offset,last_atr,InSession(now_utc));
   datetime closed=iTime(TradingSymbol,PERIOD_M15,1);bool boundary=closed>0&&closed!=last_bar;
-  if(boundary) {
+  // A failed/asynchronous download must recover without waiting for another M15 close.
+  // Only a genuine new-bar boundary may evaluate entries, avoiding stale setups on retry.
+  if(boundary||(timer&&!data_ok&&now_utc-last_history_attempt>=30)) {
+   last_history_attempt=now_utc;
    last_bar=closed;
    data_ok=Load(bars,PERIOD_M15,HistoryBars)&&Load(h1,PERIOD_H1,H1HistoryBars)&&V1ATR(bars,p.atr_period,atr);
    if(data_ok) {

@@ -18,6 +18,11 @@ class SettingsMetadataValues(SchemaModel):
     riskPerTrade: Literal[1, 2] | StrictFloat
     dailyLossLimit: Literal[1, 2, 3, 4, 5] | StrictFloat
     maxSpread: Literal[
+        0,
+        1,
+        2,
+        3,
+        4,
         5,
         6,
         7,

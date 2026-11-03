@@ -1,8 +1,8 @@
 {
   "bridge.schema.json": "337c5923d2cb3bf065539c0b2394378e81d71e98b90aa53dcb2e541f320920bf",
   "events.json": "0bf7b51453b441e6b855cfd2e870d6136726a7fcc278be5e709a01730fbd1c7a",
-  "openapi.yaml": "1860d528433c5ac15c5dbd81c27e8042c1c8697dda5116f2f3f38f0895422143",
+  "openapi.yaml": "7dd53ef738e0b9f179e89b9fe37115a70000a4fbf1115b6b1471422f40493a04",
   "session.openapi.yaml": "b93a9bb25b7244fea3ef24c2b61fb81a7a8dd4d0396cf78045f787f021cb7c91",
-  "settings.schema.json": "47c7012c464a0e5a6f3e68566bb7ed3773dce06950c69486cbba502713207f96",
+  "settings.schema.json": "32edeea72d0b123a6aaeb37d513b3e81f8d28f667a8ac1e84c46f18d6de8ad74",
   "settings.v2.schema.json": "04a8440c0bc892514e02d7ce9bbbb3b28fb7cb2a6cb43e41dbee4e8237f691c7"
 }

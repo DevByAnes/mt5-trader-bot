@@ -2281,7 +2281,7 @@
           },
           "maxSpread": {
             "type": "number",
-            "minimum": 5,
+            "minimum": 0,
             "maximum": 100,
             "multipleOf": 1
           },

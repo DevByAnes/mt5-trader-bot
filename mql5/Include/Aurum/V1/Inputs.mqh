@@ -25,6 +25,7 @@ input bool AllowRemoteConfig=false;
 input group "Data, time and training-derived thresholds — fail closed until configured"
 input string BrokerClockCsv="Aurum\\broker_clock.csv";
 input string NewsCsv="Aurum\\news.csv";
+input bool NativeNewsEnabled=true; // Live USD calendar; tester uses the exported CSV.
 input int NewsBeforeMinutes=30;
 input int NewsAfterMinutes=30;
 input bool SessionFilterEnabled=true;
@@ -39,6 +40,7 @@ input int AsiaEndMinute=15*60;
 input string TradingDayCity="New_York";
 input int TradingDayStartMinute=17*60;
 input int HistoryBars=5000;
+input int DemoRolloverGapMinutes=0; // UNVERIFIED Demo-only exception after server midnight; 0=strict.
 input int H1HistoryBars=500;
 input double MaxSpreadPoints=0; // Training P90, not an invented default.
 input double AtrRatioLow=0; // Training P10.
@@ -125,7 +127,7 @@ void V1ReadParams(V1Params &p) {
 bool V1ValidateInputs() {
  if(TradingSymbol==""||Magic<=0||RiskPercent<=0||RiskPercent>1||DailyLossPercent<=0||DailyProfitPercent<0||MaxOpen<1||MaxTradesPerDay<1||MinimumMarginLevel<=0||
  MaxDeviationPoints<0||MaxEntryDelaySeconds<1||MaxQuoteAgeSeconds<1||CooldownBars<0||MaxHoldingHours<1||MaxHoldingHours>24||WeekendCloseMinutes<0||WeekendCloseMinutes>1440||
- SwingN<1||SwingN>20||AtrPeriod<2||AtrMedianBars<2||HistoryBars<2000||HistoryBars>30000||H1HistoryBars<100||H1HistoryBars>5000||
+ SwingN<1||SwingN>20||AtrPeriod<2||AtrMedianBars<2||HistoryBars<2000||HistoryBars>30000||H1HistoryBars<100||H1HistoryBars>5000||DemoRolloverGapMinutes<0||DemoRolloverGapMinutes>120||
  BosAtr<0||ZoneAtr<=0||SweepMinAtr<0||SweepMaxAtr<=SweepMinAtr||SweepConfirmBars<1||SweepConfirmBars>3||
  DisplacementBodyAtr<=0||DisplacementBodyRatio<=0||DisplacementBodyRatio>1||DisplacementClosePosition<=0||DisplacementClosePosition>1||MultiDisplacementAtr<=0||
  RetestMinBars<1||RetestMaxBars<RetestMinBars||RetestMaxBars>100||TouchGapBars<1||MinTouches<1||PullbackBars<1||PullbackBars>50||

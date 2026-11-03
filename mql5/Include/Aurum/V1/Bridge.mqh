@@ -1,10 +1,8 @@
 #ifndef AURUM_V1_BRIDGE
 #define AURUM_V1_BRIDGE
 #include "Execution.mqh"
-// Key is inherited only in terminal process memory; never an input, .set or plaintext file.
-#import "kernel32.dll"
-uint GetEnvironmentVariableW(string name,ushort &buffer[],uint size);
-#import
+// Key comes from the launcher's local-user-only Windows named pipe. No DLL import,
+// plaintext file, input parameter, .set export or URL carries the secret.
 class V1Bridge {
  private:
  uchar key[];long state_seq,ack_seq;string pending;datetime pending_after;long version;
@@ -88,8 +86,10 @@ class V1Bridge {
  V1Bridge(){active=false;state_seq=0;ack_seq=0;pending="";pending_after=0;version=1;}
  bool Init(string directory,V1Execution &e) {
   root=directory;instance=V1NewUuid();if(!BridgeEnabled)return true;
-  if(!MQLInfoInteger(MQL_DLLS_ALLOWED))return false;ushort buffer[];ArrayResize(buffer,260);uint n=GetEnvironmentVariableW("AURUM_BRIDGE_KEY_HEX",buffer,260);
-  if(n<64||n>=260)return false;string secret=ShortArrayToString(buffer,0,(int)n);bool valid=V1Unhex(secret,key);ArrayInitialize(buffer,0);secret="";if(!valid)return false;
+  string pipe="\\\\.\\pipe\\AurumControl-"+(string)AccountInfoInteger(ACCOUNT_LOGIN)+"-"+TradingSymbol+"-"+(string)Magic;
+  int pipe_handle=FileOpen(pipe,FILE_READ|FILE_BIN);if(pipe_handle==INVALID_HANDLE){Print("AURUM KEY_HANDOFF_UNAVAILABLE: start backend launcher first");return false;}
+  uchar buffer[];ArrayResize(buffer,64);uint n=FileReadArray(pipe_handle,buffer,0,64);FileClose(pipe_handle);
+  if(n!=64)return false;string secret=CharArrayToString(buffer,0,64,CP_UTF8);bool valid=V1Unhex(secret,key);ArrayInitialize(buffer,0);secret="";if(!valid)return false;
   for(int i=0;i<StringLen(BridgeKeyId);i++)if(StringFind("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-",StringSubstr(BridgeKeyId,i,1))<0)return false;
   if(StringLen(BridgeKeyId)<1||StringLen(BridgeKeyId)>64)return false;
   string wire,text;if(V1Read(root+"\\native_config.json",wire)) {
@@ -121,7 +121,7 @@ class V1Bridge {
  string Settings(V1Execution &e){
   // Legacy six-field UI cannot represent arbitrary research input steps. Report unavailable
   // instead of publishing a schema-invalid or rounded account configuration.
-  if(e.spread_max<5||e.spread_max>100||MathFloor(e.spread_max)!=e.spread_max||e.risk_pct<.1||MathAbs(e.risk_pct*10-MathRound(e.risk_pct*10))>1e-6||e.loss_pct<.5||e.loss_pct>5||MathAbs(e.loss_pct*10-MathRound(e.loss_pct*10))>1e-6)return "null";
+  if(e.spread_max<0||e.spread_max>100||MathFloor(e.spread_max)!=e.spread_max||e.risk_pct<.1||MathAbs(e.risk_pct*10-MathRound(e.risk_pct*10))>1e-6||e.loss_pct<.5||e.loss_pct>5||MathAbs(e.loss_pct*10-MathRound(e.loss_pct*10))>1e-6)return "null";
   return "{\"version\":"+(string)version+",\"values\":{\"executionMode\":"+JQuote(e.mode==AUTO_EXECUTE?"AUTO_EXECUTE":"SIGNAL_ONLY")+",\"riskPerTrade\":"+JNum(e.risk_pct)+",\"dailyLossLimit\":"+JNum(e.loss_pct)+",\"maxSpread\":"+JNum(e.spread_max)+",\"allowRemoteConfig\":"+JBool(AllowRemoteConfig)+",\"allowRealAccount\":false},\"pending_next_day\":"+JBool(pending!="")+"}";
  }
  bool State(string resources,datetime utc) {

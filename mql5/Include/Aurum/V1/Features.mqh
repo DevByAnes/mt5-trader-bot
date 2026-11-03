@@ -1,6 +1,10 @@
 #ifndef AURUM_V1_FEATURES
 #define AURUM_V1_FEATURES
 #include "Types.mqh"
+bool V1SessionContains(int second,long first,long last) {
+ if(first==last)return false;
+ return last>first?(second>=first&&second<last):(second>=first||second<last);
+}
 bool V1ValidBars(const MqlRates &r[],int period) {
  int n=ArraySize(r);if(n<2)return false;
  for(int i=0;i<n;i++) {
@@ -8,6 +12,13 @@ bool V1ValidBars(const MqlRates &r[],int period) {
      r[i].low<=0||r[i].high<MathMax(r[i].open,r[i].close)||r[i].low>MathMin(r[i].open,r[i].close)||r[i].high<r[i].low||
      (i>0&&(r[i].time<=r[i-1].time||(r[i].time-r[i-1].time)%period!=0)))return false;
  }return true;
+}
+bool V1DemoRolloverGap(datetime before,datetime after,datetime missing,int minutes,bool demo) {
+ if(!demo||minutes<=0||minutes>120||before>=missing||missing>=after)return false;
+ MqlDateTime b,a,m;TimeToStruct(before,b);TimeToStruct(after,a);TimeToStruct(missing,m);
+ if(b.year==a.year&&b.day_of_year==a.day_of_year)return false;
+ // Only a boundary gap bracketed by actual quotes; never accept intraday holes.
+ return b.hour>=22&&(m.hour*60+m.min)<minutes;
 }
 bool V1ATR(const MqlRates &r[],int period,double &a[]) {
  int n=ArraySize(r);ArrayResize(a,n);ArrayInitialize(a,EMPTY_VALUE);if(period<1||n<=period)return false;

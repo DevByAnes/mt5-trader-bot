@@ -180,7 +180,7 @@ class SettingsDraft(SchemaModel):
     executionMode: Literal["SIGNAL_ONLY", "AUTO_EXECUTE", "PAPER", "LIVE"]
     riskPerTrade: Annotated[StrictFloat, Field(ge=0.1, le=2.0, multiple_of=0.1)]
     dailyLossLimit: Annotated[StrictFloat, Field(ge=0.5, le=5.0, multiple_of=0.1)]
-    maxSpread: Annotated[StrictFloat, Field(ge=5.0, le=100.0, multiple_of=1.0)]
+    maxSpread: Annotated[StrictFloat, Field(ge=0.0, le=100.0, multiple_of=1.0)]
     allowRemoteConfig: StrictBool
     allowRealAccount: StrictBool
 

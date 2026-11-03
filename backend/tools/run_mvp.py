@@ -13,6 +13,7 @@ from pathlib import Path
 import keyring
 
 from aurum_backend.security.secrets import bridge_key
+from tools.key_pipe import start_key_pipe
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -55,6 +56,7 @@ def main() -> None:
         key = bridge_key()
     if key is None:
         raise SystemExit("No bridge key. Use --provision-key once or inject AURUM_BRIDGE_KEY_HEX.")
+    start_key_pipe(args.account, args.symbol, args.magic, key)
     if args.launch_terminal:
         running = subprocess.run(  # noqa: S603
             [
