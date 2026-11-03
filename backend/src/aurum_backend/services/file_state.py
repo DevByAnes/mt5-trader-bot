@@ -169,6 +169,13 @@ class FileState(EventHub):
                 )
             if payload["values"]["executionMode"] == "LIVE":
                 raise ApiFault("LIVE_LOCKED", "Native LIVE validation has not passed", 403)
+            if (
+                payload["values"]["executionMode"] == "AUTO_EXECUTE"
+                and self.read("SettingsData")["values"]["executionMode"] != "AUTO_EXECUTE"
+            ):
+                raise ApiFault(
+                    "MT5_ONLY", "Enable Demo AUTO_EXECUTE explicitly in MT5 inputs", 403
+                )
             kind = "CONFIG"
             config_version = payload["base_version"] + 1
             deadline = now + 16 * 60000

@@ -300,9 +300,10 @@ export interface components {
         };
         EaState: {
             /** @enum {string} */
-            mode: "SIGNAL_ONLY" | "PAPER" | "LIVE";
+            mode: "SIGNAL_ONLY" | "AUTO_EXECUTE" | "PAPER" | "LIVE";
             equity: number | null;
             pnl_today: number | null;
+            account_currency?: string;
             risk_active: boolean | null;
             risk_reason: string | null;
             session: string;
@@ -353,6 +354,8 @@ export interface components {
             close: number;
         };
         Chart: {
+            /** @enum {string} */
+            time_basis?: "UTC" | "BROKER";
             candles: components["schemas"]["Candle"][];
             overlays: {
                 label: string;
@@ -382,7 +385,7 @@ export interface components {
         };
         SettingsDraft: {
             /** @enum {string} */
-            executionMode: "SIGNAL_ONLY" | "PAPER" | "LIVE";
+            executionMode: "SIGNAL_ONLY" | "AUTO_EXECUTE" | "PAPER" | "LIVE";
             riskPerTrade: number;
             dailyLossLimit: number;
             maxSpread: number;

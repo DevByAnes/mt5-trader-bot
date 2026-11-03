@@ -1793,6 +1793,7 @@
             "type": "string",
             "enum": [
               "SIGNAL_ONLY",
+              "AUTO_EXECUTE",
               "PAPER",
               "LIVE"
             ]
@@ -1808,6 +1809,9 @@
               "number",
               "null"
             ]
+          },
+          "account_currency": {
+            "type": "string"
           },
           "risk_active": {
             "type": [
@@ -2086,6 +2090,10 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "time_basis": {
+            "type": "string",
+            "enum": ["UTC", "BROKER"]
+          },
           "candles": {
             "type": "array",
             "items": {
@@ -2254,6 +2262,7 @@
             "type": "string",
             "enum": [
               "SIGNAL_ONLY",
+              "AUTO_EXECUTE",
               "PAPER",
               "LIVE"
             ]

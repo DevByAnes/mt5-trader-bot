@@ -1,5 +1,11 @@
 # Aurum Control
 
+**Native V1 MVP:** closed-bar S1–S4 and optional S5 are implemented in
+`mql5/Experts/AurumControl.mq5`, with Demo-only opt-in `AUTO_EXECUTE` and authenticated
+FILE telemetry/control. See [Windows/MT5 setup and current limits](docs/MVP_RUN.fa.md).
+The milestone descriptions below predate this EA; a complete broker real-tick/forward
+acceptance and production desktop packaging are still outstanding.
+
 React / TypeScript / Tauri 2 operations console for an XAUUSD EA through a local Python bridge. The dashboard displays server-reported values and requests limited management actions. It never sizes positions, computes trading risk/RR, signs HMAC payloads or talks to MT5 directly.
 
 Use Node 24 and pnpm 10.28.2. Direct dependency versions are pinned; `pnpm-lock.yaml` is the CI lock. The npm lock is retained for the existing npm workflow.

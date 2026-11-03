@@ -70,9 +70,10 @@ class EaState(SchemaModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    mode: Literal["SIGNAL_ONLY", "PAPER", "LIVE"]
+    mode: Literal["SIGNAL_ONLY", "AUTO_EXECUTE", "PAPER", "LIVE"]
     equity: StrictFloat | None
     pnl_today: StrictFloat | None
+    account_currency: StrictStr | None = None
     risk_active: StrictBool | None
     risk_reason: StrictStr | None
     session: StrictStr
@@ -140,6 +141,7 @@ class Chart(SchemaModel):
     model_config = ConfigDict(
         extra="forbid",
     )
+    time_basis: Literal["UTC", "BROKER"] | None = None
     candles: list[Candle]
     overlays: list[Overlay]
 
@@ -175,7 +177,7 @@ class SettingsDraft(SchemaModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    executionMode: Literal["SIGNAL_ONLY", "PAPER", "LIVE"]
+    executionMode: Literal["SIGNAL_ONLY", "AUTO_EXECUTE", "PAPER", "LIVE"]
     riskPerTrade: Annotated[StrictFloat, Field(ge=0.1, le=2.0, multiple_of=0.1)]
     dailyLossLimit: Annotated[StrictFloat, Field(ge=0.5, le=5.0, multiple_of=0.1)]
     maxSpread: Annotated[StrictFloat, Field(ge=5.0, le=100.0, multiple_of=1.0)]

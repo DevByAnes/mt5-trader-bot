@@ -52,6 +52,7 @@ class SecurityMiddleware:
                 response.headers["WWW-Authenticate"] = "Bearer"
             if origin in self.config.origins:
                 response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Expose-Headers"] = "X-Aurum-Mode, Retry-After"
                 response.headers["Vary"] = "Origin"
             if scope["type"] == "websocket":
                 await WebSocket(scope, receive, send).send_denial_response(response)

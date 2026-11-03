@@ -8,6 +8,7 @@ import { KillSwitch } from './features/killswitch/KillSwitch';
 import { useUiStore } from './shared/store';
 import { connectRealtime, type ConnectionState } from './shared/api/realtime';
 import { api } from './shared/api/client';
+import { applyRealtimeEvent } from './shared/api/cache';
 import { ageLabel, numberValue, numberLocale } from './shared/format';
 import { Overview } from './features/overview/Overview';
 import { Positions } from './features/positions/Positions';
@@ -28,10 +29,7 @@ export function App() {
     const status = useQuery({ queryKey: ['status'], queryFn: api.status });
     const ea = useQuery({ queryKey: ['ea-state'], queryFn: api.eaState });
     useEffect(() => { const timer = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(timer); }, []);
-    useEffect(() => connectRealtime(e => { if (e.type === 'heartbeat')
-        qc.setQueryData(['status'], e.payload);
-    else
-        void qc.invalidateQueries(); }, s => { setConn(s); setBackendOnline(s.status === 'online'); }, () => { void qc.invalidateQueries(); }), [qc, setBackendOnline]);
+    useEffect(() => connectRealtime(e => applyRealtimeEvent(qc, e), s => { setConn(s); setBackendOnline(s.status === 'online'); }, () => { void qc.invalidateQueries(); }), [qc, setBackendOnline]);
     useEffect(() => { document.documentElement.dir = ui.locale === 'fa' ? 'rtl' : 'ltr'; document.documentElement.lang = ui.locale; document.documentElement.dataset.theme = ui.theme; void i18n.changeLanguage(ui.locale); }, [ui.theme, ui.locale, i18n]);
     const clock = (zone?: string) => new Intl.DateTimeFormat(numberLocale(), { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: zone }).format(now);
     return <div className="app"><header><button className="icon mobile" onClick={() => setOpen(!open)} aria-label={copy("Open navigation")}><Menu /></button><div className="brand-mark">{copy("AU")}</div><div className="brand"><strong>{t('app')}</strong><small>{copy("XAUUSD · Execution oversight")}</small></div><span className="execution-mode">{ea.data?.mode ?? t('unavailable')}</span><KillSwitch /><div className="header-actions"><label className="sr-only" htmlFor="language">{copy("Language")}</label><select id="language" value={ui.locale} onChange={e => ui.setLocale(e.target.value as 'en' | 'fa')}><option value="en">{copy("EN")}</option><option value="fa">فارسی</option></select><label className="sr-only" htmlFor="digits">{copy("Digits")}</label><select id="digits" value={ui.digits} onChange={e => ui.setDigits(e.target.value as 'latn' | 'arabext')}><option value="latn">123</option><option value="arabext">۱۲۳</option></select><button className="icon" onClick={ui.toggleTheme} aria-label={copy("Toggle theme")}>{ui.theme === 'dark' ? <Sun /> : <Moon />}</button></div></header>

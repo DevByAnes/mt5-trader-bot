@@ -14,7 +14,7 @@ class SettingsMetadataValues(SchemaModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    executionMode: Literal["SIGNAL_ONLY", "PAPER", "LIVE"]
+    executionMode: Literal["SIGNAL_ONLY", "AUTO_EXECUTE", "PAPER", "LIVE"]
     riskPerTrade: Literal[1, 2] | StrictFloat
     dailyLossLimit: Literal[1, 2, 3, 4, 5] | StrictFloat
     maxSpread: Literal[

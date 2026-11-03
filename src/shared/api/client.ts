@@ -35,11 +35,14 @@ type GetData<P extends GetPath> = paths[P] extends {
 } ? D : never;
 const base = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8765/api/v1';
 let sessionToken: string | undefined;
+let rateLimitedUntil = 0;
 export function setSessionToken(value: string) { sessionToken = value; }
 export class ApiClientError extends Error {
-    constructor(public readonly status: number, public readonly detail: ApiError | null) { super(detail?.message ?? `HTTP ${status}`); }
+    constructor(public readonly status: number, public readonly detail: ApiError | null, public readonly retryAfterMs?: number) { super(detail?.message ?? `HTTP ${status}`); }
 }
 async function request<T>(path: string, init?: RequestInit, apiBase = base): Promise<T> {
+    if ((!init?.method || init.method === 'GET') && Date.now() < rateLimitedUntil)
+        throw new ApiClientError(503, {code: 'UNAVAILABLE', message: 'Request rate exceeded; reconnecting automatically'}, rateLimitedUntil - Date.now());
     const headers = new Headers(init?.headers);
     headers.set('Accept', 'application/json');
     if (init?.body)
@@ -50,6 +53,12 @@ async function request<T>(path: string, init?: RequestInit, apiBase = base): Pro
     const mode = response.headers.get('X-Aurum-Mode');
     if (mode === 'fixture' || mode === 'file') queryClient.setQueryData<TransportMetadata>(['transport-metadata'], {mode});
     const body = await response.json();
+    if (response.status === 429 || (response.status === 503 && body.error?.message === 'Request rate exceeded')) {
+        const seconds = Number(response.headers.get('Retry-After') ?? '60');
+        const delay = Number.isFinite(seconds) && seconds > 0 ? Math.min(seconds, 300) * 1000 : 60000;
+        rateLimitedUntil = Date.now() + delay;
+        throw new ApiClientError(response.status, body.error, delay);
+    }
     if (!response.ok || body.error)
         throw new ApiClientError(response.status, body.error);
     if (body.api_version !== '1.0.0' || body.data === undefined)

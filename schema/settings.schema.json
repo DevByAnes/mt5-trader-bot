@@ -9,6 +9,7 @@
       "type": "string",
       "enum": [
         "SIGNAL_ONLY",
+        "AUTO_EXECUTE",
         "PAPER",
         "LIVE"
       ],

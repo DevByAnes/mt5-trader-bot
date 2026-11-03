@@ -1,0 +1,74 @@
+{
+  "build": 6295,
+  "compile": [
+    {
+      "script": "InputsTest.mq5",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "script": "EconomicsTest.mq5",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "script": "BrokerReadOnlyTest.mq5",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "script": "V1EngineTest.mq5",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "script": "V1BridgeTest.mq5",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "script": "AurumControl.mq5",
+      "errors": 0,
+      "warnings": 0
+    }
+  ],
+  "input_defaults": 94,
+  "schema_match": true,
+  "unicode_controls_roundtrip": true,
+  "invalid_inputs": [
+    {
+      "field": "InpMagic",
+      "rejected": true
+    },
+    {
+      "field": "InpMinNetRR",
+      "rejected": true
+    },
+    {
+      "field": "InpRiskPerTrade",
+      "rejected": true
+    },
+    {
+      "field": "InpExecutionMode",
+      "rejected": true
+    }
+  ],
+  "economics": {
+    "suite": "economics",
+    "checks": 9,
+    "failures": 0,
+    "build": 6295
+  },
+  "v1": {
+    "checks": 57,
+    "failures": 0,
+    "failed": ""
+  },
+  "v1_bridge": {
+    "checks": 12,
+    "failures": 0
+  },
+  "native_python_wire_interoperability": true,
+  "account_used": false,
+  "orders_submitted": false
+}
