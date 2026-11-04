@@ -19,3 +19,4 @@ __pycache__/
 .schemathesis/
 backend/.evidence/
 backend/*.egg-info/
+releases/

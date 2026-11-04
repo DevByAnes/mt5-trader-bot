@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 
-from aurum_backend.api import dev, routes, session
+from aurum_backend.api import dev, forward, routes, session
 from aurum_backend.api.envelope import error_response
 from aurum_backend.api.errors import ApiFault
 from aurum_backend.core.config import Config
@@ -58,6 +58,7 @@ def create_app(config: Config | None = None) -> FastAPI:
     app.include_router(routes.router)
     app.include_router(realtime_router)
     app.include_router(session.router)
+    app.include_router(forward.router)
     if settings.environment == "development" and settings.backend_mode == "fixture":
         app.include_router(dev.router)
 

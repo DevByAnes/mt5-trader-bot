@@ -27,4 +27,4 @@ function localSession(): Plugin {
         },
     };
 }
-export default defineConfig({ plugins: [react(), localSession()], server: { host: '127.0.0.1', port: 1420, strictPort: true }, clearScreen: false });
+export default defineConfig({ plugins: [react(), localSession()], server: { host: '127.0.0.1', port: 1420, strictPort: true, watch: { ignored: ['**/backend/.evidence/**', '**/releases/**'] } }, clearScreen: false });

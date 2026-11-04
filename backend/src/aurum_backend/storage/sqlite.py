@@ -13,6 +13,8 @@ from typing import Any, cast
 from aurum_backend.api.errors import ApiFault
 from aurum_backend.bridge.codec import json_bytes
 from aurum_backend.core.time import utc_now
+from aurum_backend.storage.forward import TABLE as FORWARD_TABLE
+from aurum_backend.storage.forward import observe
 
 MIGRATION = """
 CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -70,7 +72,9 @@ class Repository:
             raise RuntimeError("Unsupported database migration version")
         try:
             upgrade = "ALTER TABLE operations ADD COLUMN apply_at TEXT;\n" if version == 1 else ""
-            self.connection.executescript("BEGIN IMMEDIATE;\n" + upgrade + MIGRATION + "\nCOMMIT;")
+            self.connection.executescript(
+                "BEGIN IMMEDIATE;\n" + upgrade + MIGRATION + FORWARD_TABLE + "\nCOMMIT;"
+            )
             self.verify_audit()
         except BaseException:
             if self.connection.in_transaction:
@@ -338,6 +342,7 @@ class Repository:
             if payload["kind"] == "STATE":
                 resources = payload["body"]["resources"]
                 self.put_tx(connection, "ea_snapshot", payload)
+                observe(connection, payload)
                 settings = resources["SettingsData"]
                 known_settings = self.get("settings")
                 if settings and (

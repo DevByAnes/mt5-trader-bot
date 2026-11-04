@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "release:build": "node scripts/build-forward.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
     "lint": "eslint .",
@@ -15,7 +16,8 @@
     "tauri": "tauri",
     "contract:check": "node scripts/contract-check.mjs",
     "screenshots": "node scripts/capture.mjs after",
-    "test:integration": "node tests/integration/python-dashboard.mjs"
+    "test:integration": "node tests/integration/python-dashboard.mjs",
+    "test:release": "node tests/integration/built-forward.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "7.0.1",

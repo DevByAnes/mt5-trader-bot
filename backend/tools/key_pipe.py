@@ -9,8 +9,13 @@ from ctypes import wintypes as w
 def start_key_pipe(account: str, symbol: str, magic: int, key: bytes) -> None:
     if os.name != "nt" or len(key) != 32:
         raise ValueError("Windows and a 32-byte bridge key required")
-    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
-    advapi = ctypes.WinDLL("advapi32", use_last_error=True)
+    win_dll = getattr(ctypes, "WinDLL", None)
+    win_error = getattr(ctypes, "WinError", None)
+    last_error = getattr(ctypes, "get_last_error", None)
+    if win_dll is None or win_error is None or last_error is None:
+        raise RuntimeError("Windows native APIs unavailable")
+    kernel = win_dll("kernel32", use_last_error=True)
+    advapi = win_dll("advapi32", use_last_error=True)
     kernel.GetCurrentProcess.restype = w.HANDLE
     kernel.LocalFree.argtypes = [w.HLOCAL]
     kernel.CloseHandle.argtypes = [w.HANDLE]
@@ -52,17 +57,17 @@ def start_key_pipe(account: str, symbol: str, magic: int, key: bytes) -> None:
 
     token = w.HANDLE()
     if not advapi.OpenProcessToken(kernel.GetCurrentProcess(), 8, ctypes.byref(token)):
-        raise ctypes.WinError(ctypes.get_last_error())
+        raise win_error(last_error())
     try:
         size = w.DWORD()
         advapi.GetTokenInformation(token, 1, None, 0, ctypes.byref(size))
         buffer = ctypes.create_string_buffer(size.value)
         if not advapi.GetTokenInformation(token, 1, buffer, size, ctypes.byref(size)):
-            raise ctypes.WinError(ctypes.get_last_error())
+            raise win_error(last_error())
         sid = ctypes.cast(buffer, ctypes.POINTER(ctypes.c_void_p))[0]
         sid_text = w.LPWSTR()
         if not advapi.ConvertSidToStringSidW(sid, ctypes.byref(sid_text)):
-            raise ctypes.WinError(ctypes.get_last_error())
+            raise win_error(last_error())
         try:
             acl = f"D:P(A;;GA;;;SY)(A;;GA;;;{sid_text.value})"
         finally:
@@ -73,7 +78,7 @@ def start_key_pipe(account: str, symbol: str, magic: int, key: bytes) -> None:
     if not advapi.ConvertStringSecurityDescriptorToSecurityDescriptorW(
         acl, 1, ctypes.byref(descriptor), None
     ):
-        raise ctypes.WinError(ctypes.get_last_error())
+        raise win_error(last_error())
 
     class SecurityAttributes(ctypes.Structure):
         _fields_ = [("length", w.DWORD), ("descriptor", ctypes.c_void_p), ("inherit", w.BOOL)]
@@ -86,13 +91,13 @@ def start_key_pipe(account: str, symbol: str, magic: int, key: bytes) -> None:
     )
     kernel.LocalFree(descriptor)
     if handle == w.HANDLE(-1).value:
-        raise ctypes.WinError(ctypes.get_last_error())
+        raise win_error(last_error())
 
     def serve() -> None:
         try:
             while True:
                 connected = kernel.ConnectNamedPipe(handle, None)
-                if not connected and ctypes.get_last_error() != 535:
+                if not connected and last_error() != 535:
                     return
                 raw = key.hex().encode("ascii")
                 written = w.DWORD()

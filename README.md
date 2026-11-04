@@ -1,5 +1,12 @@
 # Aurum Control
 
+**First forward-test bundle:** run `npm run release:build`, then from `backend`
+`python -m uv run python -m tools.package_forward`. The ZIP contains compiled UI,
+compiled Demo-only EA, Python sources, SHA-256 manifest and `Start.cmd`.
+See [one-week run guide](docs/FORWARD_WEEK.fa.md) and
+[release checks and outstanding Demo connection](docs/FORWARD_RELEASE_CHECKLIST.fa.md).
+`npm run test:release` verifies the built UI and JSON report against a signed synthetic FILE peer.
+
 **Native V1 MVP:** closed-bar S1–S4 and optional S5 are implemented in
 `mql5/Experts/AurumControl.mq5`, with Demo-only opt-in `AUTO_EXECUTE` and authenticated
 FILE telemetry/control. See [Windows/MT5 setup and current limits](docs/MVP_RUN.fa.md).

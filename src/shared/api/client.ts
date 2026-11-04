@@ -11,6 +11,12 @@ export type DiffItem = Models['DiffItem'];
 export type Ack = Models['Ack'];
 export type SettingsValues = Models['SettingsDraft'];
 export type Command = paths['/commands/{command}']['post']['parameters']['path']['command'];
+export interface ForwardReport {
+    report_version: number; started_utc: string | null; last_sample_utc: string | null;
+    target_end_utc: string | null; observed_span_hours: number; samples: number;
+    decisions: number; deals: number; sample_gaps_over_3_minutes: number;
+    sampled_max_drawdown_percent: number | null; reason_counts: {code: string; count: number}[];
+}
 type GetPath = {
     [P in keyof paths]: paths[P] extends {
         get: {
@@ -68,6 +74,8 @@ async function request<T>(path: string, init?: RequestInit, apiBase = base): Pro
 const get = <P extends GetPath>(path: P) => request<GetData<P>>(path);
 const post = <T>(path: string, body: unknown, key?: string) => request<T>(path, { method: 'POST', body: JSON.stringify(body), ...(key ? { headers: { 'Idempotency-Key': key } } : {}) });
 export const api = { status: () => get('/status'), eaState: () => get('/ea/state'), positions: () => get('/positions'), signals: () => get('/signals'), chart: () => get('/chart'), risk: () => get('/risk/daily'), telemetry: () => get('/telemetry'), settings: () => get('/settings'),
+    forwardTest: () => request<ForwardReport>('/forward-test', undefined, base.replace(/\/v1\/?$/, '/v2')),
+    exportForwardTest: () => request<unknown>('/forward-test/export', undefined, base.replace(/\/v1\/?$/, '/v2')),
     socketTicket: () => request<SessionComponents['schemas']['SocketTicket']>('/session/ws-ticket', { method: 'POST' }, base.replace(/\/v1\/?$/, '/v2')),
     validateSettings: (body: Models['ApplyRequest']) => post<Models['Diff']>('/settings/validate', body),
     applySettings: (base_version: number, values: SettingsValues, key: string = crypto.randomUUID()) => post<Ack>('/settings/apply', { base_version, values }, key),

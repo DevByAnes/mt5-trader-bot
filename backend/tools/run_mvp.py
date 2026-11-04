@@ -25,17 +25,32 @@ def free(port: int) -> bool:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--account", required=True, help="Exact Demo account login (no password)")
+    parser.add_argument(
+        "--account", help="Demo login; omitted reads the connected Demo (no password)"
+    )
     parser.add_argument("--symbol", default="XAUUSD")
     parser.add_argument("--magic", type=int, default=260110)
     parser.add_argument(
         "--terminal", type=Path, default=Path(r"C:\Program Files\MetaTrader 5\terminal64.exe")
     )
     parser.add_argument("--launch-terminal", action="store_true")
+    parser.add_argument("--development", action="store_true", help="Use Vite instead of built UI")
     parser.add_argument(
         "--provision-key", action="store_true", help="Create missing Windows Credential Manager key"
     )
     args = parser.parse_args()
+    if args.account is None:
+        import MetaTrader5 as mt5
+
+        if not mt5.initialize(str(args.terminal), timeout=10000):
+            raise SystemExit("Open MT5 and connect your Demo account first")
+        try:
+            account = mt5.account_info()
+            if account is None or account.trade_mode != mt5.ACCOUNT_TRADE_MODE_DEMO:
+                raise SystemExit("A connected Demo account is required")
+            args.account = str(account.login)
+        finally:
+            mt5.shutdown()
     if sys.platform != "win32" or not args.account.isdecimal() or args.magic <= 0:
         parser.error("Windows, a numeric Demo login and positive magic are required")
     if not args.symbol or any(
@@ -45,6 +60,8 @@ def main() -> None:
         parser.error("Unsupported symbol characters")
     if not all(free(p) for p in (1420, 8765)):
         raise SystemExit("Ports 1420/8765 are occupied. Stop existing development servers first.")
+    if not args.development and not (ROOT / "dist/index.html").is_file():
+        raise SystemExit("Build the forward release first: npm run release:build")
     key_account = f"bridge/{args.account}-{args.symbol}-{args.magic}"
     os.environ["AURUM_KEYRING_ACCOUNT"] = key_account
     key = bridge_key()
@@ -111,7 +128,7 @@ def main() -> None:
             text=True,
             creationflags=subprocess.CREATE_NO_WINDOW,
         ).splitlines()[0]
-    )  # noqa: S603,S607
+    ) if args.development else None  # noqa: S603,S607
     children: list[subprocess.Popen[bytes]] = []
     try:
         children.append(
@@ -124,8 +141,9 @@ def main() -> None:
         )  # noqa: S603
         children.append(
             subprocess.Popen(  # noqa: S603
-                [str(node), str(ROOT / "node_modules/vite/bin/vite.js"), "--host", "127.0.0.1"],
-                cwd=ROOT,
+                ([str(node), str(ROOT / "node_modules/vite/bin/vite.js"), "--host", "127.0.0.1"]
+                 if args.development else [sys.executable, "-m", "tools.dashboard"]),
+                cwd=ROOT if args.development else ROOT / "backend",
                 env=environment,
                 creationflags=subprocess.CREATE_NO_WINDOW,
             )

@@ -27,7 +27,12 @@ class V1Engine {
   string record="{\"time\":"+JQuote(JTime(now_utc))+",\"strategy\":"+JQuote(s.strategy)+",\"direction\":"+JQuote(V1Direction(s.direction))+",\"setup_id\":"+JQuote(s.setup_id)+",\"core_passed\":"+JQuote(s.core)+",\"bonus_hit\":"+JQuote(s.bonus)+",\"ranking_score\":"+JNum(s.score)+",\"historical_win_probability\":null,\"mode_strict_or_soft\":"+JQuote(s.soft?"SOFT":"STRICT")+",\"entry\":"+JNum(s.entry)+",\"sl\":"+JNum(s.sl)+",\"tp\":"+JNum(s.tp)+",\"rr\":"+JNum(s.rr)+",\"cost_estimate\":"+JNum(s.cost)+",\"status\":"+JQuote(status)+",\"reject_reason\":"+JQuote(reason)+",\"features\":"+features+"}";
   if(!V1Append(exec.root+"\\signals_"+JEpoch(V1DayStart(now_utc,TradingDayCity,TradingDayStartMinute))+".jsonl",record))exec.storage_ok=false;
   string decision=status=="ISSUED"?V1Direction(s.direction):(status=="NO_SIGNAL"?"NO_SIGNAL":"WAIT");
-  string item="{\"id\":"+JQuote(s.setup_id==""?V1NewUuid():s.setup_id)+",\"time_utc\":"+JQuote(JTime(now_utc))+",\"decision\":"+JQuote(decision)+",\"reasons\":["+JQuote(s.strategy+" "+status+" "+reason+" rank="+DoubleToString(s.score,1)+" (uncalibrated)")+"],\"price\":"+(s.entry>0?JNum(s.entry):"null")+",\"reason_code\":"+(reason==""?"null":JQuote(reason))+",\"actual\":null,\"limit\":null}";
+  string actual="null",limit="null";
+  if(reason=="SPREAD_HIGH"){actual=Spread();limit=JNum(exec.spread_max);}
+  if(reason=="VOLATILITY_OUT"){actual=JNum(atr_ratio);limit=JNum(atr_ratio<AtrRatioLow?AtrRatioLow:AtrRatioHigh);}
+  if(reason=="NET_RR_TOO_LOW"){actual=JNum(s.rr);limit=JNum(MinimumRR);}
+  if(reason=="BELOW_T_MID"){actual=JNum(s.score);limit=JNum(p.mid);}
+  string item="{\"id\":"+JQuote(V1HashText(record))+",\"time_utc\":"+JQuote(JTime(now_utc))+",\"decision\":"+JQuote(decision)+",\"reasons\":["+JQuote(s.strategy+" "+status+" "+reason+" rank="+DoubleToString(s.score,1)+" (uncalibrated)")+"],\"price\":"+(s.entry>0?JNum(s.entry):"null")+",\"reason_code\":"+(reason==""?"null":JQuote(reason))+",\"actual\":"+actual+",\"limit\":"+limit+"}";
   Ring(signal_items,item);
  }
  string FVG(){int n=ArraySize(bars);if(!data_ok||n<3)return "null";int i=n-1,d=bars[i].low>bars[i-2].high?1:(bars[i].high<bars[i-2].low?-1:0);
@@ -104,12 +109,24 @@ class V1Engine {
   return "";
  }
  void Evaluate() {
-  last_reason=Gate();if(last_reason!=""){V1Signal empty;ZeroMemory(empty);SignalLog(empty,"NO_SIGNAL",last_reason);return;}
+  last_reason=Gate();string entry_gate=last_reason;
+  // Missing history prevents analysis. Execution filters must not hide observable
+  // setups: record them as WAIT, then return before reservation or order submission.
+  if(!data_ok){V1Signal empty;ZeroMemory(empty);SignalLog(empty,"NO_SIGNAL",last_reason);return;}
   int at=ArraySize(bars)-1;V1Signal candidates[];
-  V1Evaluate(bars,atr,swings,hourly,levels,breaks,sweeps,p,InSession(now_utc),true,candidates);
+  V1Evaluate(bars,atr,swings,hourly,levels,breaks,sweeps,p,InSession(now_utc),atr_ratio>=AtrRatioLow&&atr_ratio<=AtrRatioHigh,candidates);
   string strategies[]={"S1","S2","S3","S4","S5"};bool enabled[]={p.s1,p.s2,p.s3,p.s4,p.s5};
   for(int k=0;k<5;k++)if(enabled[k]){bool found=false;for(int i=0;i<ArraySize(candidates);i++)if(candidates[i].strategy==strategies[k])found=true;if(!found){V1Signal empty;ZeroMemory(empty);empty.strategy=strategies[k];SignalLog(empty,"NO_SIGNAL","CORE_NOT_MET");}}
-  MqlTick quote;if(!exec.Quote(quote,now_utc,offset))return;
+  MqlTick quote;bool quote_ok=exec.Quote(quote,now_utc,offset);
+  if(!quote_ok&&entry_gate=="")entry_gate="NO_SIGNAL_DATA_QUALITY";
+  if(entry_gate!="") {
+   for(int i=0;i<ArraySize(candidates);i++){
+    if(quote_ok)candidates[i].entry=candidates[i].direction>0?quote.ask:quote.bid;
+    SignalLog(candidates[i],"WAIT",entry_gate);
+   }
+   if(ArraySize(candidates)==0){V1Signal empty;ZeroMemory(empty);SignalLog(empty,"NO_SIGNAL",entry_gate);}
+   return;
+  }
   for(int i=0;i<ArraySize(candidates);i++) {
    candidates[i].entry=candidates[i].direction>0?quote.ask:quote.bid;
    string reason="";
@@ -170,7 +187,16 @@ class V1Engine {
   string text="{\"time_basis\":"+JQuote(basis)+",\"candles\":[";
   for(int i=0;i<ArraySize(view);i++){
    if(i>0)text+=",";text+="{\"time\":"+JEpoch(view[i].time)+",\"open\":"+JNum(view[i].open)+",\"high\":"+JNum(view[i].high)+",\"low\":"+JNum(view[i].low)+",\"close\":"+JNum(view[i].close)+"}";
-  }return text+"],\"overlays\":[]}";
+  }
+  string overlays="";int count=0;
+  if(data_ok)for(int k=ArraySize(levels)-1;k>=0&&count<16;k--)if(!levels[k].invalidated){
+   if(count++>0)overlays+=",";overlays+="{\"label\":"+JQuote(levels[k].type)+",\"price\":"+JNum(levels[k].price)+"}";
+  }
+  for(int k=0;k<PositionsTotal();k++)if(PositionGetTicket(k)>0&&exec.Own()){
+   string names[]={"Entry","SL","TP"};double prices[]={PositionGetDouble(POSITION_PRICE_OPEN),PositionGetDouble(POSITION_SL),PositionGetDouble(POSITION_TP)};
+   for(int j=0;j<3;j++)if(prices[j]>0){if(count++>0)overlays+=",";overlays+="{\"label\":"+JQuote(names[j])+",\"price\":"+JNum(prices[j])+"}";}
+  }
+  return text+"],\"overlays\":["+overlays+"]}";
  }
  string Journal(){if(offset==100000||!HistorySelect(now_utc+offset*60-35*86400,now_utc+offset*60))return "null";string result="{\"items\":[";int count=0;
   for(int i=HistoryDealsTotal()-1;i>=0&&count<200;i--){ulong ticket=HistoryDealGetTicket(i);if(HistoryDealGetInteger(ticket,DEAL_MAGIC)!=Magic||HistoryDealGetString(ticket,DEAL_SYMBOL)!=TradingSymbol)continue;

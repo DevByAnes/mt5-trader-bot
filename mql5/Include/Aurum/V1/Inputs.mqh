@@ -131,7 +131,7 @@ bool V1ValidateInputs() {
  BosAtr<0||ZoneAtr<=0||SweepMinAtr<0||SweepMaxAtr<=SweepMinAtr||SweepConfirmBars<1||SweepConfirmBars>3||
  DisplacementBodyAtr<=0||DisplacementBodyRatio<=0||DisplacementBodyRatio>1||DisplacementClosePosition<=0||DisplacementClosePosition>1||MultiDisplacementAtr<=0||
  RetestMinBars<1||RetestMaxBars<RetestMinBars||RetestMaxBars>100||TouchGapBars<1||MinTouches<1||PullbackBars<1||PullbackBars>50||
- StopBufferAtr<0||MinStopAtr<=0||MinimumRR<1.5||MaximumCostRatio<=0||MaximumCostRatio>=1||
+ StopBufferAtr<0||MinStopAtr<=0||MinimumRR<2||MaximumCostRatio<=0||MaximumCostRatio>=1||
  MidScore<0||HighScore<MidScore||HighScore>100||ConflictMargin<0||MergeBonus<0||TargetSpaceAtr<0||
  MaxSpreadPoints<0||AtrRatioLow<0||AtrRatioHigh<0||CommissionRoundTripPerLot<0||SlippagePoints<0||HeartbeatSeconds<1||HeartbeatSeconds>5||
  BreakEvenTriggerR<=0||BreakEvenBufferAtr<0||PartialCloseTriggerR<=0||PartialClosePercent<=0||PartialClosePercent>=100||

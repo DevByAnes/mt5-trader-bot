@@ -5,7 +5,7 @@ import hooks from 'eslint-plugin-react-hooks';
 import refresh from 'eslint-plugin-react-refresh';
 
 export default tseslint.config(
-  { ignores: ['dist', '**/.venv/**', '**/.pytest_cache/**', 'src/shared/api/*generated.ts',
+  { ignores: ['dist', 'releases/**', '**/.venv/**', '**/.pytest_cache/**', 'src/shared/api/*generated.ts',
       'src-tauri', 'public/mockServiceWorker.js', 'test-results', 'playwright-report'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
